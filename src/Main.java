@@ -1,28 +1,28 @@
-import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
+        int screenWidth  = 1000;
+        int screenHeight = 1000;
+        int cellSize     = 50;
 
-        
+        Element[][] map = new Element[screenWidth/cellSize][screenHeight/cellSize];
 
-        String[][] map = new String[1000][1000];
-
-        for (int i = 0; i<map.length; i++) {
-            for (int j = 0; j<map[i].length; j++) {
+        //fill with grass
+        for(int i = 0; i<map.length;i++) {
+            for (int j = 0; j < map[i].length; j++) {
                 map[i][j] = new Grass();
             }
         }
-//1. Create the frame.
-        JFrame frame = new JFrame("FrameDemo");
-        frame.setSize(1000, 1000);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        //draw simple road
+        for(int i = 0; i<map.length;i++) {
 
-//        frame.getContentPane().add(emptyLabel, BorderLayout.CENTER);
-//
-//        frame.pack();
+                map[i][16] = new Road("up");
+        }
 
-        frame.setVisible(true);
+        MultiRectangleDrawer mr = new MultiRectangleDrawer(map, screenWidth, screenHeight, cellSize);
+
+        mr.start();
 
     }
 }
