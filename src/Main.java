@@ -5,6 +5,8 @@ public class Main {
         int screenHeight = 1000;
         int cellSize     = 50;
 
+
+
         Element[][] map = new Element[screenWidth/cellSize][screenHeight/cellSize];
 
         //fill with grass

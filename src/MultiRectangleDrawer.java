@@ -1,8 +1,9 @@
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +17,26 @@ public class MultiRectangleDrawer extends JPanel {
     private int cellSize;
 
 
+
     public MultiRectangleDrawer(Element[][] map, int screenWidth, int screenHeight, int cellSize) {
+//        addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mousePressed(MouseEvent e) {
+//                mousePt = e.getPoint();
+//
+//            }
+//
+//            }
+//        );
+
+        this.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+//                System.out.println(e.getX()+" "+e.getY());
+                getCell(e.getX(), e.getY());
+            }
+        });
+
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
         this.cellSize = cellSize;
@@ -28,7 +48,9 @@ public class MultiRectangleDrawer extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     }
-
+    private void getCell(int x, int y) {
+        System.out.println((double)(x/screenWidth)*(screenWidth/cellSize));
+    }
     public void start() {
         MultiRectangleDrawer drawer = new MultiRectangleDrawer(map, screenWidth, screenHeight, cellSize);
         drawer.addRectangles();
@@ -50,6 +72,11 @@ public class MultiRectangleDrawer extends JPanel {
                 g.fillRect(i*cellSize, j*cellSize, cellSize, cellSize);
             }
         }
+    }
+    public void mouseClicked(MouseEvent e) {
+        int x=e.getX();
+        int y=e.getY();
+        System.out.println(x+","+y);//these co-ords are relative to the component
     }
 
 
