@@ -1,5 +1,4 @@
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -18,16 +17,18 @@ public class MultiRectangleDrawer extends JPanel {
 
 
 
+
+
     public MultiRectangleDrawer(Element[][] map, int screenWidth, int screenHeight, int cellSize) {
-//        addMouseListener(new MouseAdapter() {
-//            @Override
-//            public void mousePressed(MouseEvent e) {
-//                mousePt = e.getPoint();
-//
-//            }
-//
-//            }
-//        );
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                getCell(e.getX(), e.getY());
+
+            }
+
+            }
+        );
 
         this.addMouseMotionListener(new MouseAdapter() {
             @Override
@@ -36,6 +37,8 @@ public class MultiRectangleDrawer extends JPanel {
                 getCell(e.getX(), e.getY());
             }
         });
+
+
 
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
@@ -49,7 +52,18 @@ public class MultiRectangleDrawer extends JPanel {
 
     }
     private void getCell(int x, int y) {
-        System.out.println((double)(x/screenWidth)*(screenWidth/cellSize));
+        int newX = (int)((((double)x)/screenWidth)*(screenWidth/cellSize));
+        int newY = (int)((((double)y)/screenHeight)*(screenHeight/cellSize));
+        map[newX][newY] = new Road("up");
+        repaint();
+        JFrame newWindow = new JFrame();
+        newWindow.setSize(800, 1089);
+        newWindow.setLocation(150, 50);
+        JLabel label = new JLabel();
+        label.setIcon(new ImageIcon("src\\arrow.png"));
+        newWindow.add(label);
+        newWindow.setVisible(true);
+
     }
     public void start() {
         MultiRectangleDrawer drawer = new MultiRectangleDrawer(map, screenWidth, screenHeight, cellSize);
@@ -70,14 +84,11 @@ public class MultiRectangleDrawer extends JPanel {
             for (int j = 0; j<map[i].length; j++) {
                 g.setColor(new Color(map[i][j].getColor()));
                 g.fillRect(i*cellSize, j*cellSize, cellSize, cellSize);
+                g.setColor(new Color(0x0000ff));
             }
         }
     }
-    public void mouseClicked(MouseEvent e) {
-        int x=e.getX();
-        int y=e.getY();
-        System.out.println(x+","+y);//these co-ords are relative to the component
-    }
+
 
 
 }
