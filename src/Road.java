@@ -1,7 +1,7 @@
 public class Road extends Element{
     private String direction;
     public Road(String direction) {
-        super(0x111111);
+        super(0x111111, "road.png");
         this.direction = direction;
     }
 
