@@ -16,11 +16,6 @@ public class Main {
             }
         }
 
-        //draw simple road
-        for(int i = 0; i<map.length;i++) {
-
-                map[i][16] = new Road("up");
-        }
 
         MultiRectangleDrawer mr = new MultiRectangleDrawer(map, screenWidth, screenHeight, cellSize);
 
