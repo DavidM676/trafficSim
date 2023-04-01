@@ -1,22 +1,16 @@
 public class Road extends Element{
-    private String direction;
-    public final int angle;
-    public Road(String direction) {
+    private int angle;
+    public Road(int angle) {
         super( "road.png");
-        this.direction = direction;
-        switch (direction){
-            case "down": angle=180;
-                break;
-            case "left": angle=270;
-                break;
-            case "right": angle=90;
-                break;
-            default: angle=0;
-                break;
-        }
+        this.angle = angle;
+
     }
 
-    public String getDirection() {
-        return direction;
+    public int getAngle() {
+        return angle;
+    }
+
+    public void setAngle(int angle) {
+        this.angle = angle;
     }
 }

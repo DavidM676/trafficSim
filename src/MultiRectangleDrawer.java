@@ -33,6 +33,7 @@ public class MultiRectangleDrawer extends JPanel {
                     // Left mouse button was clicked
                     changeCell(e.getX(), e.getY(), true);
                 } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    changeAngle(e.getX(), e.getY());
                     // Right mouse button was clicked
                     // do something else
                 }
@@ -45,6 +46,7 @@ public class MultiRectangleDrawer extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
 //                System.out.println(e.getX()+" "+e.getY());
+
                 changeCell(e.getX(), e.getY(), false);
             }
         });
@@ -74,16 +76,33 @@ public class MultiRectangleDrawer extends JPanel {
         if ((!(newPnt.equals(changed))) || clickAgain) {
 
             if (map[newPnt.x][newPnt.y] instanceof Grass) {
-                map[newPnt.x][newPnt.y] = new Road("up");
+                int angle = 0;
+                if (changed!=null) {
+                    if (newPnt.x < changed.x) {
+                        angle = 270;
+                    } else if (newPnt.x>changed.x) {
+                        angle = 90;
+                    } else if (newPnt.y>changed.y) {
+                        angle=180;
+                    }
+                }
+                map[newPnt.x][newPnt.y] = new Road(angle);
             } else if (map[newPnt.x][newPnt.y] instanceof Road) {
                 map[newPnt.x][newPnt.y] = new Grass();
             }
             changed = new Point(newPnt.x, newPnt.y);
             repaint(newPnt.x * cellSize, newPnt.y * cellSize, cellSize, cellSize);
         }
+    }
 
-
-
+    private void changeAngle(int x, int y) {
+        Point changePnt = getCell(x, y);
+        if (map[changePnt.x][changePnt.y] instanceof Road) {
+            Road r = (Road) map[changePnt.x][changePnt.y];
+            r.setAngle(r.getAngle()+90);
+            changed = new Point(changePnt.x, changePnt.y);
+            repaint(changePnt.x * cellSize, changePnt.y * cellSize, cellSize, cellSize);
+        }
     }
     public void start() {
         MultiRectangleDrawer drawer = new MultiRectangleDrawer(map, screenWidth, screenHeight, cellSize);
@@ -111,7 +130,7 @@ public class MultiRectangleDrawer extends JPanel {
                 BufferedImage image = ImageIO.read(new File("src/arrow.png"));
                 BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
                 Graphics2D g2d = rotatedImage.createGraphics();
-                g2d.rotate(Math.toRadians(((Road) map[i][j]).angle), cellSize/2, cellSize/2);
+                g2d.rotate(Math.toRadians(((Road) map[i][j]).getAngle()), cellSize/2, cellSize/2);
                 g2d.drawImage(image, 0, 0, cellSize, cellSize, null);
                 g2d.dispose();
                 g.drawImage(rotatedImage, i*cellSize, j*cellSize, null);
