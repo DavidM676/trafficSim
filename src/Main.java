@@ -1,6 +1,7 @@
 
 public class Main {
     public static void main(String[] args) {
+
         int screenWidth  = 1000;
         int screenHeight = 1000;
         int cellSize     = 25;

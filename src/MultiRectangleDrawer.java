@@ -1,16 +1,16 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+
 
 public class MultiRectangleDrawer extends JPanel {
+
+
 
     private Element[][] map;
     private JFrame frame;
@@ -26,6 +26,9 @@ public class MultiRectangleDrawer extends JPanel {
 
 
     public MultiRectangleDrawer(Element[][] map, int screenWidth, int screenHeight, int cellSize) {
+
+
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
