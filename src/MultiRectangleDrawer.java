@@ -1,5 +1,6 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.MenuListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -16,11 +17,83 @@ public class MultiRectangleDrawer extends JPanel {
     private int cellSize;
     private Point changed;
 
-
+    private JMenuBar mb;
+    private JButton start;
 
 
 
     public MultiRectangleDrawer(int screenWidth, int screenHeight, int cellSize) {
+        mb = new JMenuBar();
+        JMenu fileTab= new JMenu("File");
+
+        // file menu--------------------------------------
+        JMenuItem save = new JMenuItem("save");
+        save.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String fileName = saveWindow();
+                System.out.println("FILENAME: "+fileName);
+            }
+        });
+
+        JMenuItem load = new JMenuItem("load map");
+        load.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String option = loadWindow();;
+            }
+        });
+
+        JMenuItem quit = new JMenuItem("quit");
+        quit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        fileTab.add(save);
+        fileTab.add(load);
+        fileTab.add(quit);
+        //--------------------------------------
+
+        JMenu configTab = new JMenu("Configure");
+        //config tab -----------------------------------
+        JMenuItem settings = new JMenuItem("settings");
+        settings.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                settingsWindow();
+            }
+        });
+
+        configTab.add(settings);
+        //--------------------------------------
+
+        start = new JButton("Start");
+        start.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (start.getText().equals("Start")) {
+                    start.setText("Stop");
+                    for (int i = 0; i<map.length; i++) {
+                        for (int j = 0; j<map[i].length; j++) {
+                            if (map[i][j] instanceof Road) {
+                                System.out.println("yes");
+                                repaint(i * cellSize, j * cellSize, cellSize, cellSize);
+                            }
+                        }
+                    }
+
+                    // code to start the task
+                } else {
+                    start.setText("Start");
+
+                    // code to stop the task
+                }
+            }
+        });
+
+        mb.add(fileTab);
+        mb.add(configTab);
+        mb.add(start);
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -68,6 +141,7 @@ public class MultiRectangleDrawer extends JPanel {
 
         frame = new JFrame("Multi-Rectangle Example");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setJMenuBar(mb);
     }
 
     public Save getMap() {
@@ -130,14 +204,61 @@ public class MultiRectangleDrawer extends JPanel {
     }
 
 
+
+
+
+    public String loadWindow() {
+        String[] options = {"Option 1", "Option 2", "Option 3"};
+        JComboBox<String> comboBox = new JComboBox<>(options);
+        int result = JOptionPane.showConfirmDialog(null, comboBox, "Select an option", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            String selectedOption = comboBox.getSelectedItem().toString();
+            System.out.println("Selected option: " + selectedOption);
+            return selectedOption;
+        }
+        return null;
+    }
+
+    public String saveWindow() {
+        String input = JOptionPane.showInputDialog("Enter File Name:");
+        return input;
+    }
+
+    public int[] settingsWindow() {
+        JSlider slider1 = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        JSlider slider2 = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        JSlider slider3 = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+
+        JPanel panel = new JPanel(new GridLayout(3,2));
+        panel.add(new JLabel("Slider 1:"));
+        panel.add(slider1);
+        panel.add(new JLabel("Slider 2:"));
+        panel.add(slider2);
+        panel.add(new JLabel("Slider 3:"));
+        panel.add(slider3);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, "Sliders", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            int value1 = slider1.getValue();
+            int value2 = slider2.getValue();
+            int value3 = slider3.getValue();
+            System.out.println("Slider 1 value: " + value1);
+            System.out.println("Slider 2 value: " + value2);
+            System.out.println("Slider 3 value: " + value3);
+            int[] vals = {value1, value2, value3};
+            return vals;
+        }
+        int[] def = new int[3];
+        return def;
+    }
     public void drawImage(Graphics g, int i, int j) {
         try {
             g.drawImage(ImageIO.read(new File(map.getGrid()[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        if (map.getGrid()[i][j] instanceof Road) {
+        System.out.println(start.getText());
+        if (map.getGrid()[i][j] instanceof Road && start.getText().equals("Start")) {
             try {
                 BufferedImage image = ImageIO.read(new File("src/arrow.png"));
                 BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
@@ -155,7 +276,6 @@ public class MultiRectangleDrawer extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
         if (changed == null) {
             for (int i = 0; i < map.getHeight(); i++) {
                 for (int j = 0; j < map.getWidth(); j++) {
