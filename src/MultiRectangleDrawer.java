@@ -72,9 +72,9 @@ public class MultiRectangleDrawer extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 if (start.getText().equals("Start")) {
                     start.setText("Stop");
-                    for (int i = 0; i<map.length; i++) {
-                        for (int j = 0; j<map[i].length; j++) {
-                            if (map[i][j] instanceof Road) {
+                    for (int i = 0; i<map.getHeight(); i++) {
+                        for (int j = 0; j<map.getWidth(); j++) {
+                            if (map.getGrid()[i][j] instanceof Road) {
                                 System.out.println("yes");
                                 repaint(i * cellSize, j * cellSize, cellSize, cellSize);
                             }
