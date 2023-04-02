@@ -9,32 +9,27 @@ import java.util.Arrays;
 
 
 public class MultiRectangleDrawer extends JPanel {
-
-
-
-    private Element[][] map;
+    private Save map;
     private JFrame frame;
-
     private int screenWidth;
     private int screenHeight;
     private int cellSize;
-
     private Point changed;
 
 
 
 
 
-    public MultiRectangleDrawer(Element[][] map, int screenWidth, int screenHeight, int cellSize) {
-
-
-
+    public MultiRectangleDrawer(int screenWidth, int screenHeight, int cellSize) {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    // Left mouse button was clicked
+                    // Left mouse button was clicked -> change the cell (swap between grass, road and intersection)
                     changeCell(e.getX(), e.getY(), true);
+                } else if (e.getButton() == MouseEvent.BUTTON2) {
+                    // Middle mouse button was clicked -> change turning abilities (swap between no turn, left turn, right turn, and both turns, or for an intersection, no turns, turn from path 1, turn from path 2, or turns from both)
+
                 } else if (e.getButton() == MouseEvent.BUTTON3) {
                     changeAngle(e.getX(), e.getY());
                     // Right mouse button was clicked
@@ -62,10 +57,21 @@ public class MultiRectangleDrawer extends JPanel {
 
         setPreferredSize(new Dimension(screenWidth, screenHeight));
 
-        this.map = map;
+        map = new Save(screenWidth/cellSize, screenHeight/cellSize);
+
+        //fill with grass
+        for(int i = 0; i < map.getHeight(); i++) {
+            for (int j = 0; j < map.getWidth(); j++) {
+                map.getGrid()[i][j] = new Grass();
+            }
+        }
+
         frame = new JFrame("Multi-Rectangle Example");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
 
+    public Save getMap() {
+        return map;
     }
 
     private Point getCell(int x, int y) {
@@ -73,25 +79,30 @@ public class MultiRectangleDrawer extends JPanel {
         int newY = (int)((((double)y)/screenHeight)*(screenHeight/cellSize));
         return new Point(newX, newY);
     }
+
+    public void setMap(Save newMap) {
+        map = newMap;
+    }
+
     private void changeCell(int x, int y, boolean clickAgain) {
 
         Point newPnt = getCell(x, y);
         if ((!(newPnt.equals(changed))) || clickAgain) {
 
-            if (map[newPnt.x][newPnt.y] instanceof Grass) {
-                int angle = 0;
+            if (map.getGrid()[newPnt.x][newPnt.y] instanceof Grass) {
+                Orientation angle = Orientation.NORTH;
                 if (changed!=null) {
                     if (newPnt.x < changed.x) {
-                        angle = 270;
+                        angle = Orientation.WEST;
                     } else if (newPnt.x>changed.x) {
-                        angle = 90;
+                        angle = Orientation.EAST;
                     } else if (newPnt.y>changed.y) {
-                        angle=180;
+                        angle = Orientation.SOUTH;
                     }
                 }
-                map[newPnt.x][newPnt.y] = new Road(angle);
-            } else if (map[newPnt.x][newPnt.y] instanceof Road) {
-                map[newPnt.x][newPnt.y] = new Grass();
+                map.getGrid()[newPnt.x][newPnt.y] = new Road(angle);
+            } else if (map.getGrid()[newPnt.x][newPnt.y] instanceof Road) {
+                map.getGrid()[newPnt.x][newPnt.y] = new Grass();
             }
             changed = new Point(newPnt.x, newPnt.y);
             repaint(newPnt.x * cellSize, newPnt.y * cellSize, cellSize, cellSize);
@@ -100,17 +111,16 @@ public class MultiRectangleDrawer extends JPanel {
 
     private void changeAngle(int x, int y) {
         Point changePnt = getCell(x, y);
-        if (map[changePnt.x][changePnt.y] instanceof Road) {
-            Road r = (Road) map[changePnt.x][changePnt.y];
-            r.setAngle(r.getAngle()+90);
+        if (map.getGrid()[changePnt.x][changePnt.y] instanceof Road) {
+            Road r = (Road) map.getGrid()[changePnt.x][changePnt.y];
+            r.setDirection(Orientation.rotateRight(r.getDirection()));
             changed = new Point(changePnt.x, changePnt.y);
             repaint(changePnt.x * cellSize, changePnt.y * cellSize, cellSize, cellSize);
         }
     }
     public void start() {
-        MultiRectangleDrawer drawer = new MultiRectangleDrawer(map, screenWidth, screenHeight, cellSize);
-        drawer.addRectangles();
-        frame.add(drawer);
+        addRectangles();
+        frame.add(this);
         frame.pack();
         frame.setVisible(true);
     }
@@ -122,18 +132,17 @@ public class MultiRectangleDrawer extends JPanel {
 
     public void drawImage(Graphics g, int i, int j) {
         try {
-            g.drawImage(ImageIO.read(new File("src/" + map[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
+            g.drawImage(ImageIO.read(new File(map.getGrid()[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-
-        if (map[i][j] instanceof Road) {
+        if (map.getGrid()[i][j] instanceof Road) {
             try {
                 BufferedImage image = ImageIO.read(new File("src/arrow.png"));
                 BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
                 Graphics2D g2d = rotatedImage.createGraphics();
-                g2d.rotate(Math.toRadians(((Road) map[i][j]).getAngle()), cellSize/2, cellSize/2);
+                g2d.rotate(Math.toRadians(Orientation.toDegrees(((Road) map.getGrid()[i][j]).getDirection())), cellSize/2, cellSize/2);
                 g2d.drawImage(image, 0, 0, cellSize, cellSize, null);
                 g2d.dispose();
                 g.drawImage(rotatedImage, i*cellSize, j*cellSize, null);
@@ -148,8 +157,8 @@ public class MultiRectangleDrawer extends JPanel {
         super.paintComponent(g);
 
         if (changed == null) {
-            for (int i = 0; i < map.length; i++) {
-                for (int j = 0; j < map[i].length; j++) {
+            for (int i = 0; i < map.getHeight(); i++) {
+                for (int j = 0; j < map.getWidth(); j++) {
                     //                g.setColor(new Color(map[i][j].getColor()));
                     //                g.fillRect(i*cellSize, j*cellSize, cellSize, cellSize);
 

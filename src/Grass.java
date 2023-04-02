@@ -1,6 +1,5 @@
-public class Grass extends Element{
+public class Grass extends Cell {
     public Grass() {
-        super("grass.png");
+        super("src/grass.png");
     }
-
 }
