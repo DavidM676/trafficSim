@@ -39,16 +39,16 @@ public class MultiRectangleDrawer extends JPanel {
         JMenu fileTab= new JMenu("File");
 
         // file menu--------------------------------------
-        JMenuItem newSave = new JMenuItem("new");
-        newSave.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // make a new file; remove old one from display
-                map = TrafficSimulator.createEmptySave();
-                frame.setTitle(map.getName());
-                sim.addSave(map);
-                repaintAll();
-            }
-        });
+//        JMenuItem newSave = new JMenuItem("new");
+//        newSave.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                // make a new file; remove old one from display
+//                map = TrafficSimulator.createEmptySave();
+//                frame.setTitle(map.getName());
+//                sim.addSave(map);
+//                repaintAll();
+//            }
+//        });
 
         JMenuItem save = new JMenuItem("save");
         save.addActionListener(new ActionListener() {
@@ -93,7 +93,7 @@ public class MultiRectangleDrawer extends JPanel {
             }
         });
 
-        fileTab.add(newSave);
+//        fileTab.add(newSave);
         fileTab.add(save);
         fileTab.add(saveAs);
         fileTab.add(load);
