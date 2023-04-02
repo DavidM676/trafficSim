@@ -171,6 +171,7 @@ public class MultiRectangleDrawer extends JPanel {
             for (int j = 0; j<map.getWidth(); j++) {
                 if (map.getGrid()[i][j] instanceof Road) {
                     System.out.println("CALLING REPAINT");
+                    changed = new Point(i, j);
                     paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
                 }
             }
