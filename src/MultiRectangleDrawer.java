@@ -166,12 +166,10 @@ public class MultiRectangleDrawer extends JPanel {
         }
         frame = new JFrame("Traffic Simulator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
         frame.setJMenuBar(mb);
     }
 
-    public Save getMap() {
-        return map;
-    }
     private void rePaintRoad() {
         for (int i = 0; i<map.getHeight(); i++) {
             for (int j = 0; j<map.getWidth(); j++) {
@@ -188,10 +186,6 @@ public class MultiRectangleDrawer extends JPanel {
         int newX = (int)((((double)x)/screenWidth)*(screenWidth/cellSize));
         int newY = (int)((((double)y)/screenHeight)*(screenHeight/cellSize));
         return new Point(newX, newY);
-    }
-
-    public void setMap(Save newMap) {
-        map = newMap;
     }
 
     private void changeCell(int x, int y, boolean clickAgain) {
@@ -238,10 +232,6 @@ public class MultiRectangleDrawer extends JPanel {
     public void addRectangles() {
         repaint();
     }
-
-
-
-
 
     public String loadWindow() {
         String[] options = {"Option 1", "Option 2", "Option 3"};
@@ -314,15 +304,14 @@ public class MultiRectangleDrawer extends JPanel {
             }
         });
         frame.add(closeButton, BorderLayout.SOUTH);
-
         frame.pack();
         frame.setVisible(true);
     }
+
     public void drawImage(Graphics g, int i, int j) {
         if (map.getGrid()[i][j] instanceof Road) { //only draw Roads
             try {
                 g.drawImage(ImageIO.read(new File(map.getGrid()[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
-
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -341,6 +330,7 @@ public class MultiRectangleDrawer extends JPanel {
             }
         }
     }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -357,7 +347,4 @@ public class MultiRectangleDrawer extends JPanel {
             drawImage(g, i, j);
         }
     }
-
-
-
 }
