@@ -124,12 +124,14 @@ public class MultiRectangleDrawer extends JPanel {
                 if (start.getText().equals("Start")) {
                     start.setText("Stop");
                     settings.setText("stats");
-                    rePaintRoad();
+                    changed=null;
+                    repaint();
                     // code to start the task
                 } else {
                     start.setText("Start");
                     settings.setText("settings");
-                    rePaintRoad();
+                    changed=null;
+                    repaint();
                     // code to stop the task
                 }
             }
@@ -207,16 +209,7 @@ public class MultiRectangleDrawer extends JPanel {
         frame.setJMenuBar(mb);
     }
 
-    private void rePaintRoad() {
-        for (int i = 0; i<map.getHeight(); i++) {
-            for (int j = 0; j<map.getWidth(); j++) {
-                if (map.getGrid()[i][j] instanceof Road) {
-                    changed = new Point(i, j);
-                    paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
-                }
-            }
-        }
-    }
+
 
     private void repaintAll() {
         for (int i = 0; i<map.getHeight(); i++) {
