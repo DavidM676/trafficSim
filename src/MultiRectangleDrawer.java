@@ -25,6 +25,8 @@ public class MultiRectangleDrawer extends JPanel {
 
     private boolean startButtonPressed = false;
 
+    private Image backgroundImage;
+
 
 
     public MultiRectangleDrawer(int screenWidth, int screenHeight, int cellSize) {
@@ -127,8 +129,9 @@ public class MultiRectangleDrawer extends JPanel {
         this.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (!startButtonPressed)
+                if (SwingUtilities.isLeftMouseButton(e) && !startButtonPressed) {
                     changeCell(e.getX(), e.getY(), false);
+                }
             }
         });
 
@@ -150,7 +153,11 @@ public class MultiRectangleDrawer extends JPanel {
                 map.getGrid()[i][j] = new Grass();
             }
         }
-
+        try {
+            backgroundImage = ImageIO.read(new File("src/wallpaper.png"));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
         frame = new JFrame("Multi-Rectangle Example");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setJMenuBar(mb);
@@ -306,30 +313,32 @@ public class MultiRectangleDrawer extends JPanel {
         frame.setVisible(true);
     }
     public void drawImage(Graphics g, int i, int j) {
-
-        try {
-            g.drawImage(ImageIO.read(new File(map.getGrid()[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("REDRAWING: "+start.getText());
-        if (map.getGrid()[i][j] instanceof Road && !startButtonPressed) {
+        if (map.getGrid()[i][j] instanceof Road) { //only draw Roads
             try {
-                BufferedImage image = ImageIO.read(new File("src/arrow.png"));
-                BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
-                Graphics2D g2d = rotatedImage.createGraphics();
-                g2d.rotate(Math.toRadians(Orientation.toDegrees(((Road) map.getGrid()[i][j]).getDirection())), cellSize/2, cellSize/2);
-                g2d.drawImage(image, 0, 0, cellSize, cellSize, null);
-                g2d.dispose();
-                g.drawImage(rotatedImage, i*cellSize, j*cellSize, null);
+                g.drawImage(ImageIO.read(new File(map.getGrid()[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            }
+            if (!startButtonPressed) {
+                try {
+                    BufferedImage image = ImageIO.read(new File("src/arrow.png"));
+                    BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
+                    Graphics2D g2d = rotatedImage.createGraphics();
+                    g2d.rotate(Math.toRadians(Orientation.toDegrees(((Road) map.getGrid()[i][j]).getDirection())), cellSize / 2, cellSize / 2);
+                    g2d.drawImage(image, 0, 0, cellSize, cellSize, null);
+                    g2d.dispose();
+                    g.drawImage(rotatedImage, i * cellSize, j * cellSize, null);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         if (changed == null) {
             for (int i = 0; i < map.getHeight(); i++) {
                 for (int j = 0; j < map.getWidth(); j++) {
