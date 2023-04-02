@@ -1,37 +1,29 @@
-public class Cell {
+import java.util.concurrent.atomic.AtomicLongArray;
+
+public class Cell implements Cloneable {
     private String image;
-    private boolean occupied;
-    private Car occupant;
 
     public Cell(String image) {
         this.image = image;
-        occupied = false;
-        occupant = null;
     }
 
     public String getImage() {
         return image;
     }
 
-    public boolean isOccupied() {
-        return occupied;
-    }
-
-    public Car getOccupant() {
-        return occupant;
-    }
-
     public void setImage(String newImage) {
         image = newImage;
     }
 
-    public void setOccupant(Car newOccupant) {
-        occupant = newOccupant;
-        occupied = true;
-    }
-
-    public void removeOccupant() {
-        occupant = null;
-        occupied = false;
+    @Override
+    public Cell clone() {
+        try {
+            Cell clone = (Cell) super.clone();
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            clone.image = image;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

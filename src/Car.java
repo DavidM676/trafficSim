@@ -1,19 +1,16 @@
-public class Car {
+public class Car implements Cloneable {
     private int x;
     private int y;
 
     private Orientation direction;
 
-    private int speed;
-
     private String image;
 
 
-    public Car(int x, int y, Orientation direction, int speed, String image) {
+    public Car(int x, int y, Orientation direction, String image) {
         this.x = x;
         this.y = y;
         this.direction = direction;
-        this.speed = speed;
         this.image = image;
     }
 
@@ -32,5 +29,20 @@ public class Car {
 
     public void turnRight() {
         direction = Orientation.rotateRight(direction);
+    }
+
+    @Override
+    public Car clone() {
+        try {
+            Car clone = (Car) super.clone();
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            clone.x = x;
+            clone.y = y;
+            clone.direction = direction;
+            clone.image = image;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

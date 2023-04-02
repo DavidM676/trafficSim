@@ -58,4 +58,15 @@ public class Intersection extends Road {
         setCanTurnLeft(type % 2 == 1);
         // left turn from secondary always false
     }
+
+    @Override
+    public Intersection clone() {
+        Intersection clone = (Intersection) super.clone();
+        // TODO: copy mutable state here, so the clone can't change the internals of the original
+        clone.direction = direction;
+        clone.canMoveForward = canMoveForward;
+        clone.canTurnLeft = canTurnLeft;
+        clone.canTurnRight = canTurnRight;
+        return clone;
+    }
 }

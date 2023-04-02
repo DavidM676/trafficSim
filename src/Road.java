@@ -8,6 +8,8 @@ public class Road extends Cell {
     private boolean canMoveForward;
     private boolean canTurnLeft;
     private boolean canTurnRight;
+    private boolean occupied;
+    private Car occupant;
 
     public Road(Orientation direction) {
         super("src/road.png");
@@ -38,6 +40,14 @@ public class Road extends Cell {
         return canTurnRight;
     }
 
+    public boolean isOccupied() {
+        return occupied;
+    }
+
+    public Car getOccupant() {
+        return occupant;
+    }
+
     public void setType(int newType) {
         type = newType;
     }
@@ -58,6 +68,16 @@ public class Road extends Cell {
         canTurnRight = newCanTurnRight;
     }
 
+    public void setOccupant(Car newOccupant) {
+        occupant = newOccupant;
+        occupied = true;
+    }
+
+    public void removeOccupant() {
+        occupant = null;
+        occupied = false;
+    }
+
     public void changeType() {
         type++;
         if (type >= IMAGES.length) {
@@ -74,5 +94,23 @@ public class Road extends Cell {
             canTurnRight = type > 4;
             canTurnLeft = type % 2 == 0;
         }
+    }
+
+    @Override
+    public Road clone() {
+        Road clone = (Road) super.clone();
+        // TODO: copy mutable state here, so the clone can't change the internals of the original
+        clone.type = type;
+        clone.direction = direction;
+        clone.canMoveForward = canMoveForward;
+        clone.canTurnLeft = canTurnLeft;
+        clone.canTurnRight = canTurnRight;
+        clone.occupied = occupied;
+        if (occupied) {
+            clone.occupant = occupant.clone();
+        } else {
+            clone.occupant = null;
+        }
+        return clone;
     }
 }

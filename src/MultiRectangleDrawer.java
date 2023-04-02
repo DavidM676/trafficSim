@@ -6,10 +6,12 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
 public class MultiRectangleDrawer extends JPanel {
+    private TrafficSimulator sim;
     private Save map;
     private JFrame frame;
     private int screenWidth;
@@ -30,24 +32,57 @@ public class MultiRectangleDrawer extends JPanel {
 
 
 
-    public MultiRectangleDrawer(int screenWidth, int screenHeight, int cellSize) {
+    public MultiRectangleDrawer(TrafficSimulator sim, int screenWidth, int screenHeight, int cellSize) {
+        this.sim = sim;
         startButtonPressed = false;
         mb = new JMenuBar();
         JMenu fileTab= new JMenu("File");
 
         // file menu--------------------------------------
-        JMenuItem save = new JMenuItem("save");
-        save.addActionListener(new ActionListener() {
+        JMenuItem newSave = new JMenuItem("new");
+        newSave.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String fileName = saveWindow();
-                System.out.println("FILENAME: "+fileName);
+                // make a new file; remove old one from display
+                map = TrafficSimulator.createEmptySave();
+                frame.setTitle(map.getName());
+                sim.addSave(map);
+                repaintAll();
             }
         });
 
-        JMenuItem load = new JMenuItem("load map");
+        JMenuItem save = new JMenuItem("save");
+        save.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String newName = nameWindow();
+                if (newName != null) {
+                    map.setName(newName);
+                }
+            }
+        });
+
+        JMenuItem saveAs = new JMenuItem("save as...");
+        saveAs.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String fileName = nameWindow();
+                if (fileName != null) {
+                    if (!sim.saveExists(fileName)) { // if the user intends to make a new save off the current one ("save as"): saving using the original name would in theory save to the same file but saving doesn't do anything
+                        map = new Save(map, fileName);
+                        frame.setTitle(map.getName());
+                        sim.addSave(map);
+                    }
+                }
+            }
+        });
+
+        JMenuItem load = new JMenuItem("load");
         load.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String option = loadWindow();
+                Save toBeLoaded = loadWindow();
+                if (toBeLoaded != null) {
+                    map = toBeLoaded;
+                    frame.setTitle(map.getName());
+                    repaintAll();
+                }
             }
         });
 
@@ -58,7 +93,9 @@ public class MultiRectangleDrawer extends JPanel {
             }
         });
 
+        fileTab.add(newSave);
         fileTab.add(save);
+        fileTab.add(saveAs);
         fileTab.add(load);
         fileTab.add(quit);
         //--------------------------------------
@@ -149,9 +186,9 @@ public class MultiRectangleDrawer extends JPanel {
         this.screenHeight = screenHeight;
         this.cellSize = cellSize;
 
-        setPreferredSize(new Dimension(screenWidth, screenHeight));
+        map = sim.getSave(0); // get first save
 
-        map = new Save(screenWidth/cellSize, screenHeight/cellSize);
+        setPreferredSize(new Dimension(screenWidth, screenHeight));
 
         //fill with grass
         for(int i = 0; i < map.getHeight(); i++) {
@@ -164,7 +201,7 @@ public class MultiRectangleDrawer extends JPanel {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        frame = new JFrame("Traffic Simulator");
+        frame = new JFrame(map.getName());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
         frame.setJMenuBar(mb);
@@ -181,6 +218,14 @@ public class MultiRectangleDrawer extends JPanel {
         }
     }
 
+    private void repaintAll() {
+        for (int i = 0; i<map.getHeight(); i++) {
+            for (int j = 0; j<map.getWidth(); j++) {
+                changed = new Point(i, j);
+                paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
+            }
+        }
+    }
 
     private Point getCell(int x, int y) {
         int newX = (int)((((double)x)/screenWidth)*(screenWidth/cellSize));
@@ -189,10 +234,8 @@ public class MultiRectangleDrawer extends JPanel {
     }
 
     private void changeCell(int x, int y, boolean clickAgain) {
-
         Point newPnt = getCell(x, y);
         if ((!(newPnt.equals(changed))) || clickAgain) {
-
             if (map.getGrid()[newPnt.x][newPnt.y] instanceof Grass) {
                 Orientation angle = Orientation.NORTH;
                 if (changed!=null) {
@@ -233,20 +276,23 @@ public class MultiRectangleDrawer extends JPanel {
         repaint();
     }
 
-    public String loadWindow() {
-        String[] options = {"Option 1", "Option 2", "Option 3"};
+    public Save loadWindow() {
+        ArrayList<Save> saves = sim.getSaves();
+        String[] options = new String[saves.size()];
+        for (int i = 0; i < options.length; i++) {
+            options[i] = saves.get(i).getName();
+        }
         JComboBox<String> comboBox = new JComboBox<>(options);
         int result = JOptionPane.showConfirmDialog(null, comboBox, "Select an option", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             String selectedOption = comboBox.getSelectedItem().toString();
-            System.out.println("Selected option: " + selectedOption);
-            return selectedOption;
+            return saves.get(Arrays.asList(options).indexOf(selectedOption));
         }
         return null;
     }
 
-    public String saveWindow() {
-        String input = JOptionPane.showInputDialog("Enter File Name:");
+    public String nameWindow() {
+        String input = JOptionPane.showInputDialog("Enter New Name:");
         return input;
     }
 
