@@ -22,6 +22,8 @@ public class MultiRectangleDrawer extends JPanel {
 
     private JLabel loadingLabel;
 
+    private boolean startButtonPressed = false;
+
 
 
     public MultiRectangleDrawer(int screenWidth, int screenHeight, int cellSize) {
@@ -75,6 +77,7 @@ public class MultiRectangleDrawer extends JPanel {
         start.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                startButtonPressed = !startButtonPressed;
                 if (start.getText().equals("Start")) {
                     start.setText("Stop");
                     rePaintRoad();
@@ -91,17 +94,21 @@ public class MultiRectangleDrawer extends JPanel {
         mb.add(configTab);
         mb.add(start);
 
+
+        //MOUSE EVENTS -------------------------------
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     // Left mouse button was clicked -> change the cell (swap between grass, road and intersection)
-                    changeCell(e.getX(), e.getY(), true);
+                    if (!startButtonPressed)
+                        changeCell(e.getX(), e.getY(), true);
                 } else if (e.getButton() == MouseEvent.BUTTON2) {
                     // Middle mouse button was clicked -> change turning abilities (swap between no turn, left turn, right turn, and both turns, or for an intersection, no turns, turn from path 1, turn from path 2, or turns from both)
 
                 } else if (e.getButton() == MouseEvent.BUTTON3) {
-                    changeAngle(e.getX(), e.getY());
+                    if (!startButtonPressed)
+                        changeAngle(e.getX(), e.getY());
                     // Right mouse button was clicked
                     // do something else
                 }
@@ -113,10 +120,12 @@ public class MultiRectangleDrawer extends JPanel {
         this.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-
-                changeCell(e.getX(), e.getY(), false);
+                if (!startButtonPressed)
+                    changeCell(e.getX(), e.getY(), false);
             }
         });
+
+        // --------------------------------------------------------
 
         changed = null;
 
@@ -266,7 +275,7 @@ public class MultiRectangleDrawer extends JPanel {
             throw new RuntimeException(e);
         }
         System.out.println("REDRAWING: "+start.getText());
-        if (map.getGrid()[i][j] instanceof Road && start.getText().equals("Start")) {
+        if (map.getGrid()[i][j] instanceof Road && !startButtonPressed) {
             try {
                 BufferedImage image = ImageIO.read(new File("src/arrow.png"));
                 BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
