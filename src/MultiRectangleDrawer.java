@@ -21,6 +21,7 @@ public class MultiRectangleDrawer extends JPanel {
     private JButton start;
 
     private JLabel loadingLabel;
+    private JMenuItem settings;
 
     private boolean startButtonPressed = false;
 
@@ -63,10 +64,14 @@ public class MultiRectangleDrawer extends JPanel {
 
         JMenu configTab = new JMenu("Configure");
         //config tab -----------------------------------
-        JMenuItem settings = new JMenuItem("settings");
+        settings = new JMenuItem("settings");
         settings.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                settingsWindow();
+                if (settings.getText().equals("settings")) {//you can also use run and !run boolean
+                    settingsWindow();
+                } else if (settings.getText().equals("stats")) {
+                    statsWindow();
+                }
             }
         });
 
@@ -80,10 +85,12 @@ public class MultiRectangleDrawer extends JPanel {
                 startButtonPressed = !startButtonPressed;
                 if (start.getText().equals("Start")) {
                     start.setText("Stop");
+                    settings.setText("stats");
                     rePaintRoad();
                     // code to start the task
                 } else {
                     start.setText("Start");
+                    settings.setText("settings");
                     rePaintRoad();
                     // code to stop the task
                 }
@@ -266,6 +273,37 @@ public class MultiRectangleDrawer extends JPanel {
         }
         int[] def = new int[3];
         return def;
+    }
+
+    public void statsWindow() {
+        JFrame frame = new JFrame("Table Example");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        String[] columnNames = {"Driver", "#", "Collisions", "Trips without accident"};
+        Object[][] data = {
+                {"jojodoss", "1", 2345, 123},
+                {"hansy_boi", "2", 2345, 5432},
+                {"java joe", "3", 6354, 897},
+                {"mr miller", "4", 7152435, 78},
+                {"sichang", "5", 123412, 49785}
+        };
+
+        JTable table = new JTable(data, columnNames);
+        table.setEnabled(false); // disable the entire table
+        JScrollPane scrollPane = new JScrollPane(table);
+        frame.add(scrollPane);
+
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+            }
+        });
+        frame.add(closeButton, BorderLayout.SOUTH);
+
+        frame.pack();
+        frame.setVisible(true);
     }
     public void drawImage(Graphics g, int i, int j) {
 
