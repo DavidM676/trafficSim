@@ -23,14 +23,13 @@ public class MultiRectangleDrawer extends JPanel {
     private JLabel loadingLabel;
     private JMenuItem settings;
 
-    private boolean startButtonPressed = false;
+    private boolean startButtonPressed;
+    private boolean mouse1Down;
 
 
 
     public MultiRectangleDrawer(int screenWidth, int screenHeight, int cellSize) {
-
-
-
+        startButtonPressed = false;
         mb = new JMenuBar();
         JMenu fileTab= new JMenu("File");
 
@@ -46,7 +45,7 @@ public class MultiRectangleDrawer extends JPanel {
         JMenuItem load = new JMenuItem("load map");
         load.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String option = loadWindow();;
+                String option = loadWindow();
             }
         });
 
@@ -106,18 +105,26 @@ public class MultiRectangleDrawer extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                    // Left mouse button was clicked -> change the cell (swap between grass, road and intersection)
-                    if (!startButtonPressed)
+                if (!startButtonPressed) {
+                    if (e.getButton() == MouseEvent.BUTTON1) {
+                        // Left mouse button was clicked -> change the cell (swap between grass, road and intersection)
+                        mouse1Down = true;
                         changeCell(e.getX(), e.getY(), true);
-                } else if (e.getButton() == MouseEvent.BUTTON2) {
-                    // Middle mouse button was clicked -> change turning abilities (swap between no turn, left turn, right turn, and both turns, or for an intersection, no turns, turn from path 1, turn from path 2, or turns from both)
+                    } else if (e.getButton() == MouseEvent.BUTTON2) {
+                        // Middle mouse button was clicked -> change turning abilities (swap between no turn, left turn, right turn, and both turns, or for an intersection, no turns, turn from path 1, turn from path 2, or turns from both)
 
-                } else if (e.getButton() == MouseEvent.BUTTON3) {
-                    if (!startButtonPressed)
+                    } else if (e.getButton() == MouseEvent.BUTTON3) {
                         changeAngle(e.getX(), e.getY());
-                    // Right mouse button was clicked
-                    // do something else
+                        // Right mouse button was clicked
+                        // do something else
+                    }
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (!startButtonPressed && e.getButton() == MouseEvent.BUTTON1) {
+                    mouse1Down = false;
                 }
             }
 
@@ -127,7 +134,7 @@ public class MultiRectangleDrawer extends JPanel {
         this.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (!startButtonPressed)
+                if (!startButtonPressed && mouse1Down)
                     changeCell(e.getX(), e.getY(), false);
             }
         });
@@ -151,7 +158,7 @@ public class MultiRectangleDrawer extends JPanel {
             }
         }
 
-        frame = new JFrame("Multi-Rectangle Example");
+        frame = new JFrame("Traffic Simulator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setJMenuBar(mb);
     }
