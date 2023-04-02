@@ -20,9 +20,14 @@ public class MultiRectangleDrawer extends JPanel {
     private JMenuBar mb;
     private JButton start;
 
+    private JLabel loadingLabel;
+
 
 
     public MultiRectangleDrawer(int screenWidth, int screenHeight, int cellSize) {
+
+
+
         mb = new JMenuBar();
         JMenu fileTab= new JMenu("File");
 
@@ -72,19 +77,11 @@ public class MultiRectangleDrawer extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 if (start.getText().equals("Start")) {
                     start.setText("Stop");
-                    for (int i = 0; i<map.getHeight(); i++) {
-                        for (int j = 0; j<map.getWidth(); j++) {
-                            if (map.getGrid()[i][j] instanceof Road) {
-                                System.out.println("yes");
-                                repaint(i * cellSize, j * cellSize, cellSize, cellSize);
-                            }
-                        }
-                    }
-
+                    rePaintRoad();
                     // code to start the task
                 } else {
                     start.setText("Start");
-
+                    rePaintRoad();
                     // code to stop the task
                 }
             }
@@ -116,7 +113,6 @@ public class MultiRectangleDrawer extends JPanel {
         this.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-//                System.out.println(e.getX()+" "+e.getY());
 
                 changeCell(e.getX(), e.getY(), false);
             }
@@ -147,6 +143,17 @@ public class MultiRectangleDrawer extends JPanel {
     public Save getMap() {
         return map;
     }
+    private void rePaintRoad() {
+        for (int i = 0; i<map.getHeight(); i++) {
+            for (int j = 0; j<map.getWidth(); j++) {
+                if (map.getGrid()[i][j] instanceof Road) {
+                    System.out.println("CALLING REPAINT");
+                    paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
+                }
+            }
+        }
+    }
+
 
     private Point getCell(int x, int y) {
         int newX = (int)((((double)x)/screenWidth)*(screenWidth/cellSize));
@@ -252,12 +259,13 @@ public class MultiRectangleDrawer extends JPanel {
         return def;
     }
     public void drawImage(Graphics g, int i, int j) {
+
         try {
             g.drawImage(ImageIO.read(new File(map.getGrid()[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println(start.getText());
+        System.out.println("REDRAWING: "+start.getText());
         if (map.getGrid()[i][j] instanceof Road && start.getText().equals("Start")) {
             try {
                 BufferedImage image = ImageIO.read(new File("src/arrow.png"));
@@ -267,7 +275,6 @@ public class MultiRectangleDrawer extends JPanel {
                 g2d.drawImage(image, 0, 0, cellSize, cellSize, null);
                 g2d.dispose();
                 g.drawImage(rotatedImage, i*cellSize, j*cellSize, null);
-//                g.drawImage(ImageIO.read(new File("src/arrow.png")), i * cellSize, j * cellSize, cellSize, cellSize, null);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -279,9 +286,6 @@ public class MultiRectangleDrawer extends JPanel {
         if (changed == null) {
             for (int i = 0; i < map.getHeight(); i++) {
                 for (int j = 0; j < map.getWidth(); j++) {
-                    //                g.setColor(new Color(map[i][j].getColor()));
-                    //                g.fillRect(i*cellSize, j*cellSize, cellSize, cellSize);
-
                     drawImage(g, i, j);
                 }
             }
