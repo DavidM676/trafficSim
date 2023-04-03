@@ -147,6 +147,7 @@ public class TrafficSimulator {
                 System.out.println("Car has escaped");
                 Car slowest = slowestCar();
                 if (slowest.equals(car)) {
+                    ((Road) grid[car.getY()][car.getX()]).removeOccupant();
                     cars.set(k, null);
                 } else {
                     int slowestIndex = cars.indexOf(slowest);
@@ -162,6 +163,8 @@ public class TrafficSimulator {
                         Car newCar = null;
                         if (car instanceof BasicDriver) {
                             newCar = new BasicDriver();
+                        } else if (car instanceof AdvancedDriver) {
+                            newCar = new AdvancedDriver();
                         }
                         addCar(newCar);
                         System.out.println("Added " + newCar);
@@ -216,6 +219,7 @@ public class TrafficSimulator {
                 System.out.println("Random type selected: " + type);
                 Car newCar = switch (type) { // UPDATE AS MORE TYPES ARE ADDED
                     case 0 -> new BasicDriver();
+                    case 1 -> new AdvancedDriver();
                     default -> null;
                 };
                 addCar(newCar);
@@ -296,6 +300,7 @@ public class TrafficSimulator {
         double conversionFactor = (double) total / 100;
         for (int j = 0; j < settings.length - 1; j++) {
             result[j] = (int) (settings[j] / conversionFactor);
+            System.out.println("Next result in config: " + result[j]);
         }
         return result;
     }
