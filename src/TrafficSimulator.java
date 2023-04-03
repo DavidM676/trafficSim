@@ -96,23 +96,28 @@ public class TrafficSimulator {
         System.out.println(cars.size());
         for (int m = 0; m < cars.size(); m++) { // new step; none have moved in it yet
             Car car = cars.get(m);
-            if (car instanceof Collision || car == null) { // remove all collisions before simulation start
+            if (car instanceof Collision) { // remove all collisions before simulation start
                 cars.remove(m);
                 ((Road) grid[car.getY()][car.getX()]).removeOccupant();
+                m--;
+            } else if (car == null) {
+                cars.remove(m);
                 m--;
             }
         }
         for (int j = 0; j < cars.size(); j++) {
             Car car = cars.get(j);
-            System.out.println(car);
-            System.out.println("going through sim");
-            System.out.println("Car is NOT a collision, moving on");
-            Move nextMove = car.nextMove(gridBefore);
-            System.out.println("Car's next move is: " + nextMove);
-            if (nextMove == Move.FORWARD) {
-                moveQueue.add(j);
-            } else {
-                finalCoordinates.add(new Integer[] {j, car.getX(), car.getY()});
+            if (car != null) {
+                System.out.println(car);
+                System.out.println("going through sim");
+                System.out.println("Car is NOT a collision, moving on");
+                Move nextMove = car.nextMove(gridBefore);
+                System.out.println("Car's next move is: " + nextMove);
+                if (nextMove == Move.FORWARD) {
+                    moveQueue.add(j);
+                } else {
+                    finalCoordinates.add(new Integer[] {j, car.getX(), car.getY()});
+                }
             }
         }
         for (int k = 0; k < moveQueue.size(); k++) {
@@ -137,11 +142,12 @@ public class TrafficSimulator {
             Car car = cars.get(k);
             int x = coords[1];
             int y = coords[2];
+            System.out.println("Analyzing car " + car + " at index " + k + " at coordinates x = " + x + ", y = " + y);
             if (x < 0 || y < 0 || x >= currentSave.getWidth() || y >= currentSave.getHeight()) { // car made it out successfully
                 System.out.println("Car has escaped");
                 Car slowest = slowestCar();
                 if (slowest.equals(car)) {
-                    cars.set(k, null); // TODO: WHERE ALL CARS ARE REMOVED, MAKE THEM NULL
+                    cars.set(k, null);
                 } else {
                     int slowestIndex = cars.indexOf(slowest);
                     System.out.println("Slowest car is: " + slowest + " at index " + slowestIndex);
