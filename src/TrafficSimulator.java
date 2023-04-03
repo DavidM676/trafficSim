@@ -15,6 +15,8 @@ public class TrafficSimulator {
     private MultiRectangleDrawer drawer;
     private boolean simulationRunning;
     private ArrayList<Car> cars;
+    private ArrayList<Integer> moveQueue;
+    private ArrayList<Integer[]> finalCoordinates;
     private int targetVolume;
     private int currentVolume;
     private int[] settings;
@@ -29,7 +31,7 @@ public class TrafficSimulator {
     }
 
     public static Save createEmptySave() {
-        return new Save(SCREEN_WIDTH/CELL_SIZE, SCREEN_HEIGHT/CELL_SIZE);
+        return new Save(SCREEN_WIDTH / CELL_SIZE, SCREEN_HEIGHT / CELL_SIZE);
     }
 
     public ArrayList<Save> getSaves() {
@@ -55,6 +57,8 @@ public class TrafficSimulator {
                     grid = currentSave.getGrid();
                     entryPoints = currentSave.getEntryPoints();
                     cars = currentSave.getCars();
+                    moveQueue = new ArrayList<>();
+                    finalCoordinates = new ArrayList<>();
                     targetVolume = (int) (roadCount() * (currentSave.getTrafficVolume() / 100.0));
                     currentVolume = cars.size();
                     settings = currentSave.getSettings();
@@ -87,93 +91,139 @@ public class TrafficSimulator {
     private void simulationStep(boolean targetReached) {
         System.out.println("Simulation step reached");
         Cell[][] gridBefore = currentSave.cloneGrid();
+        moveQueue.clear();
+        finalCoordinates.clear();
         System.out.println(cars.size());
-        for (Car car : cars) {
+        for (int m = 0; m < cars.size(); m++) { // new step; none have moved in it yet
+            Car car = cars.get(m);
+            if (car instanceof Collision || car == null) { // remove all collisions before simulation start
+                cars.remove(m);
+                ((Road) grid[car.getY()][car.getX()]).removeOccupant();
+                m--;
+            }
+        }
+        for (int j = 0; j < cars.size(); j++) {
+            Car car = cars.get(j);
             System.out.println(car);
             System.out.println("going through sim");
-            if (car instanceof Collision) {
-                cars.remove(car);
-                ((Road) grid[car.getY()][car.getX()]).removeOccupant();
+            System.out.println("Car is NOT a collision, moving on");
+            Move nextMove = car.nextMove(gridBefore);
+            System.out.println("Car's next move is: " + nextMove);
+            if (nextMove == Move.FORWARD) {
+                moveQueue.add(j);
             } else {
-                System.out.println("Car is NOT a collision, moving on");
-                Move nextMove = car.nextMove(gridBefore);
-                System.out.println("Car's next move is: " + nextMove);
-                if (nextMove == Move.FORWARD) {
-                    System.out.println("Moving Forward");
-                    int x = car.getX();
-                    int y = car.getY();
+                finalCoordinates.add(new Integer[] {j, car.getX(), car.getY()});
+            }
+        }
+        for (int k = 0; k < moveQueue.size(); k++) {
+            Car car = cars.get(moveQueue.get(k));
+            System.out.println("Moving Forward");
+            int x = car.getX();
+            int y = car.getY();
+            ((Road) grid[y][x]).removeOccupant();
+            System.out.println("Occupant successfully removed");
+            switch (car.getDirection()) {
+                case NORTH -> x--;
+                case EAST -> y++;
+                case SOUTH -> x++;
+                case WEST -> y--;
+            }
+            System.out.println("Car coords updated");
+            System.out.println("New coordinates: x = " + x + ", y = " + y);
+            finalCoordinates.add(new Integer[] {k, x, y});
+        }
+        for (Integer[] coords : finalCoordinates) {
+            int k = coords[0];
+            Car car = cars.get(k);
+            int x = coords[1];
+            int y = coords[2];
+            if (x < 0 || y < 0 || x >= currentSave.getWidth() || y >= currentSave.getHeight()) { // car made it out successfully
+                System.out.println("Car has escaped");
+                Car slowest = slowestCar();
+                if (slowest.equals(car)) {
+                    cars.set(k, null); // TODO: WHERE ALL CARS ARE REMOVED, MAKE THEM NULL
+                }
+                int slowestIndex = cars.indexOf(slowest);
+                System.out.println("Slowest car is: " + slowest + " at index " + slowestIndex);
+                cars.remove(slowest);
+                ((Road) grid[slowest.getY()][slowest.getX()]).removeOccupant();
+                System.out.println("Removed " + slowest + " from Road " + ((Road) grid[slowest.getY()][slowest.getX()]));
+                if (slowestIndex <= k) {
+                    k--;
+                    System.out.println("Decremeted k to index " + k);
+                }
+                if (!slowest.equals(car)) {
+                    cars.remove(car);
+                    k--;
+                    ((Road) grid[car.getY()][car.getX()]).removeOccupant();
+                    System.out.println("Removed " + car + " from Road " + ((Road) grid[car.getY()][car.getX()]));
+                }
+                for (int i = 0; i < 2; i++) { // add two cars of successful type (or attempt to)
+                    // ADD MORE TYPES AS TYPES ARE ADDED
+                    Car newCar = null;
+                    if (car instanceof BasicDriver) {
+                        newCar = new BasicDriver();
+                    }
+                    addCar(newCar);
+                    System.out.println("Added " + newCar);
+                }
+            } else {
+                System.out.println("Car has not escaped");
+                System.out.println(((Road) grid[y][x]));
+                if (((Road) grid[y][x]).isOccupied()) { // if the car has moved into an occupied space, i.e. crashed into another car
+                    Car otherCar = ((Road) grid[y][x]).getOccupant();
+                    System.out.println("Car has crashed");
+                    cars.remove(car);
+                    k--;
+                    System.out.println("Removed " + car);
+                    int otherIndex = cars.indexOf(otherCar);
+                    cars.remove(otherIndex);
+                    if (otherIndex <= k) {
+                        k--;
+                    }
+                    System.out.println("Removed " + otherCar + " from " + (Road) grid[y][x]);
                     ((Road) grid[y][x]).removeOccupant();
-                    System.out.println("Occupant successfully removed");
-                    switch(car.getDirection()) {
-                        case NORTH -> x--;
-                        case EAST -> y++;
-                        case SOUTH -> x++;
-                        case WEST -> y--;
-                    }
-                    System.out.println("Car coords updated");
-                    System.out.println("New coordinates: x = " + x + ", y = " + y );
-                    if (x < 0 || y < 0 || x >= currentSave.getWidth() || y >= currentSave.getHeight()) { // car made it out successfully
-                        System.out.println("Car has escaped");
-                        Car slowest = slowestCar();
-                        System.out.println("Slowest car is: " + slowest);
-                        cars.remove(slowest);
-                        ((Road) grid[slowest.getY()][slowest.getX()]).removeOccupant();
-                        for (int i = 0; i < 2; i ++) { // add two cars of successful type (or attempt to)
-                            // ADD MORE TYPES AS TYPES ARE ADDED
-                            Car newCar = null;
-                            if (car instanceof BasicDriver) {
-                                newCar = new BasicDriver();
-                            }
-                            addCar(newCar);
-                            System.out.println("Added " + newCar);
-                        }
-                    } else {
-                        System.out.println("Car has not escaped");
-                        System.out.println(((Road) grid[y][x]));
-                        if (((Road) grid[y][x]).isOccupied()) { // if the car has moved into an occupied space, i.e. crashed into another car
-                            System.out.println("Car has crashed");
-                            cars.remove(car);
-                            System.out.println("Removed " + car);
-                            Car otherCar = ((Road) grid[y][x]).getOccupant();
-                            cars.remove(otherCar);
-                            System.out.println("Removed " + otherCar + " from " + (Road) grid[y][x]);
-                            ((Road) grid[y][x]).removeOccupant();
-                            System.out.println("Removed occupant from " + ((Road) grid[y][x]));
-//                            Collision c = new Collision(x, y);
-//                            System.out.println("Created " + c);
-//                            ((Road) grid[y][x]).setOccupant(c);
-//                            System.out.println("Made " + c + " occupant of " + ((Road) grid[y][x]));
-//                            cars.add(c);
-//                            System.out.println("Added " + c + " to cars list");
-                        } else {
-                            System.out.println("Setting new occupant");
-                            ((Road) grid[y][x]).setOccupant(car);
-                            car.setX(x);
-                            car.setY(y);
-                        }
-                    }
+                    System.out.println("Removed occupant from " + ((Road) grid[y][x]));
+                    Collision c = new Collision(x, y);
+                    System.out.println("Created " + c);
+                    ((Road) grid[y][x]).setOccupant(c);
+                    System.out.println("Made " + c + " occupant of " + ((Road) grid[y][x]));
+                    cars.add(c);
+                    System.out.println("Added " + c + " to cars list");
+                } else {
+                    System.out.println("This code does not run when a collision occurs");
+                    System.out.println("Setting new occupant");
+                    ((Road) grid[y][x]).setOccupant(car);
+                    car.setX(x);
+                    car.setY(y);
                 }
             }
         }
         System.out.println(!targetReached);
         if (!targetReached) { // max cars not reached; add more cars based on user pref.
-            System.out.println("adding cars");
-            int randType = (int) (Math.random() * 100) + 1;
-            int total = 0;
-            int type = 0;
-            for (int i = 0; i < config.length; i++) {
-                if (randType >= total && randType <= config[i]) {
-                    type = i;
+            while (entryPoints.size() > 0) {
+                System.out.println("Entry points: " + entryPoints);
+                System.out.println("adding cars");
+                int randType = (int) (Math.random() * 100) + 1;
+                System.out.println("Random number selected: " + randType);
+                int total = 0;
+                int type = 0;
+                for (int i = 0; i < config.length; i++) {
+                    if (randType >= total && randType <= config[i]) {
+                        type = i;
+                    }
+                    total += config[i];
                 }
-                total += config[i];
+                System.out.println("Random type selected: " + type);
+                Car newCar = switch (type) { // UPDATE AS MORE TYPES ARE ADDED
+                    case 0 -> new BasicDriver();
+                    default -> null;
+                };
+                addCar(newCar);
+                System.out.println("Added " + newCar);
             }
-            Car newCar = switch (type) { // UPDATE AS MORE TYPES ARE ADDED
-                case 0 -> new BasicDriver();
-                default -> null;
-            };
-            addCar(newCar);
         }
-        drawer.repaintAll();
+        drawer.repaintRoad();
     }
 
     private int roadCount() {
@@ -225,7 +275,11 @@ public class TrafficSimulator {
     }
 
     private int[] settingsToConfig() {
-        currentSave.setTrafficVolume(settings[settings.length - 2]);
+        currentSave.setTrafficVolume(settings[settings.length - 1]);
+        for (int v : settings) {
+            System.out.println("Next value in settings: " + v);
+        }
+        System.out.println("Setting traffic volume to " + settings[settings.length - 1]);
         int[] result = new int[settings.length - 1];
         int total = 0;
         for (int i = 0; i < settings.length - 1; i++) { // skips the last element (traffic config)

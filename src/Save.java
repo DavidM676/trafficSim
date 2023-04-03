@@ -18,6 +18,8 @@ public class Save {
         height = oldSave.height;
         grid = oldSave.cloneGrid();
         trafficVolume = oldSave.trafficVolume;
+        System.out.println("Creating " + this + " with traffic volume " + trafficVolume);
+        cars = new ArrayList<>();
         for (Cell[] row : grid) {
             for (Cell c : row) {
                 if (c instanceof Road) {
@@ -52,8 +54,13 @@ public class Save {
         this.height = height;
         grid = new Cell[width][height];
         trafficVolume = 50;
+        System.out.println("Creating " + this + " with traffic volume " + trafficVolume);
         cars = new ArrayList<>();
         settings = new int[DriverType.values().length + 1];
+        for (int i = 0; i < settings.length - 1; i++) {
+            settings[i] = 100;
+        }
+        settings[settings.length - 1] = trafficVolume;
         ID++;
     }
 
@@ -74,6 +81,7 @@ public class Save {
     }
 
     public int getTrafficVolume() {
+        System.out.println("Returning " + trafficVolume);
         return trafficVolume;
     }
 

@@ -200,13 +200,22 @@ public class MultiRectangleDrawer extends JPanel {
         return map;
     }
 
-    public void repaintAll() {
+    public void repaintRoad() {
         for (int i = 0; i<map.getHeight(); i++) {
             for (int j = 0; j<map.getWidth(); j++) {
                 if (map.getGrid()[i][j] instanceof Road) {
                     changed = new Point(i, j);
                     paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
                 }
+            }
+        }
+    }
+
+    private void repaintAll() {
+        for (int i = 0; i<map.getHeight(); i++) {
+            for (int j = 0; j<map.getWidth(); j++) {
+                changed = new Point(i, j);
+                paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
             }
         }
     }
@@ -305,6 +314,7 @@ public class MultiRectangleDrawer extends JPanel {
     }
 
     public int[] settingsWindow() {
+        int[] currentSettings = map.getSettings();
         JSlider[] sliders = new JSlider[DriverType.values().length + 1];
         JPanel panel = new JPanel(new GridLayout(sliders.length, 2));
         int count = 0;
@@ -312,12 +322,14 @@ public class MultiRectangleDrawer extends JPanel {
             sliders[count] = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
             panel.add(new JLabel(type.toString()));
             panel.add(sliders[count]);
+            sliders[count].setValue(currentSettings[count]);
             count++;
         }
 
         sliders[sliders.length - 1] = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
         panel.add(new JLabel("Traffic Concentration"));
         panel.add(sliders[sliders.length - 1]);
+        sliders[sliders.length - 1].setValue(currentSettings[sliders.length - 1]);
 
         int result = JOptionPane.showConfirmDialog(null, panel, "Configure", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
