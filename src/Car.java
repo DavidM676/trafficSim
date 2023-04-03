@@ -51,6 +51,10 @@ public class Car implements Cloneable {
         return moves.size();
     }
 
+    public void addMove(Move newMove) {
+        moves.add(newMove);
+    }
+
     public Move turnLeft() {
         direction = Orientation.rotateLeft(direction);
         moves.add(Move.LEFT);

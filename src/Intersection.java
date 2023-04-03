@@ -18,27 +18,51 @@ public class Intersection extends Road {
         canTurnRight = false;
     }
 
+    @Override
     public boolean canMoveForward(Orientation startingDirection) {
         if (startingDirection == getDirection()) {
-            return canMoveForward();
+            return super.canMoveForward(startingDirection);
         } else { // assumes startingDirection is either super.direction or this.direction
-            return canMoveForward;
+            if (startingDirection == direction) {
+                return canMoveForward;
+            } else if (startingDirection == Orientation.rotateLeft(direction)) {
+                return canTurnLeft;
+            } else if (startingDirection == Orientation.rotateRight(direction)) {
+                return canTurnRight;
+            }
+            return false;
         }
     }
 
+    @Override
     public boolean canTurnLeft(Orientation startingDirection) {
         if (startingDirection == getDirection()) {
-            return canTurnLeft();
+            return super.canTurnLeft(startingDirection);
         } else { // assumes startingDirection is either super.direction or this.direction
-            return canTurnLeft;
+            if (startingDirection == direction) {
+                return canTurnLeft;
+            } else if (startingDirection == Orientation.rotateLeft(direction)) {
+                return false;
+            } else if (startingDirection == Orientation.rotateRight(direction)) {
+                return canMoveForward;
+            }
+            return canTurnRight;
         }
     }
 
+    @Override
     public boolean canTurnRight(Orientation startingDirection) {
         if (startingDirection == getDirection()) {
-            return canTurnRight();
+            return super.canTurnRight(startingDirection);
         } else { // assumes startingDirection is either super.direction or this.direction
-            return canTurnRight;
+            if (startingDirection == direction) {
+                return canTurnRight;
+            } else if (startingDirection == Orientation.rotateLeft(direction)) {
+                return canMoveForward;
+            } else if (startingDirection == Orientation.rotateRight(direction)) {
+                return false;
+            }
+            return canTurnLeft;
         }
     }
 

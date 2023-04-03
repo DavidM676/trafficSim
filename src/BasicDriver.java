@@ -6,9 +6,10 @@ public class BasicDriver extends Car {
     @Override
     public Move nextMove(Cell[][] grid) {
         Road r = (Road) grid[getY()][getX()];
-        if (r.canMoveForward()) {
+        if (r.canMoveForward(getDirection())) {
+            addMove(Move.FORWARD);
             return Move.FORWARD;
-        } else if (r.canTurnLeft()) {
+        } else if (r.canTurnLeft(getDirection())) {
             return turnLeft();
         } else {
             return turnRight();

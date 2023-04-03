@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -46,7 +47,7 @@ public class TrafficSimulator {
     public void simulate() {
         SwingWorker<Void, String> Worker = new SwingWorker<Void, String>() {
             @Override
-            protected Void doInBackground() throws InterruptedException {
+            protected Void doInBackground() {
                 simulationRunning = true;
                 while (simulationRunning) {
                     System.out.println("Simulation running");
@@ -58,8 +59,11 @@ public class TrafficSimulator {
                     currentVolume = cars.size();
                     settings = currentSave.getSettings();
                     config = settingsToConfig();
+                    System.out.println("Road count: " + roadCount());
+                    System.out.println("Traffic volume: " + currentSave.getTrafficVolume());
+                    System.out.println("Target volume: " + targetVolume);
+                    System.out.println("Current volume: " + currentVolume);
                     simulationStep(currentVolume >= targetVolume);
-                    Thread.sleep(250);
                 }
                 return null;
             }
@@ -82,8 +86,7 @@ public class TrafficSimulator {
 
     private void simulationStep(boolean targetReached) {
         System.out.println("Simulation step reached");
-        Cell[][] gridBefore = grid; //currentSave.cloneGrid();
-        System.out.println(Arrays.deepToString(gridBefore));
+        Cell[][] gridBefore = currentSave.cloneGrid();
         System.out.println(cars.size());
         for (Car car : cars) {
             System.out.println(car);
@@ -102,9 +105,9 @@ public class TrafficSimulator {
                     ((Road) grid[y][x]).removeOccupant();
                     System.out.println("Occupant successfully removed");
                     switch(car.getDirection()) {
-                        case NORTH -> x++;
+                        case NORTH -> x--;
                         case EAST -> y++;
-                        case SOUTH -> x--;
+                        case SOUTH -> x++;
                         case WEST -> y--;
                     }
                     System.out.println("Car coords updated");
@@ -112,6 +115,7 @@ public class TrafficSimulator {
                     if (x < 0 || y < 0 || x >= currentSave.getWidth() || y >= currentSave.getHeight()) { // car made it out successfully
                         System.out.println("Car has escaped");
                         Car slowest = slowestCar();
+                        System.out.println("Slowest car is: " + slowest);
                         cars.remove(slowest);
                         ((Road) grid[slowest.getY()][slowest.getX()]).removeOccupant();
                         for (int i = 0; i < 2; i ++) { // add two cars of successful type (or attempt to)
@@ -121,6 +125,7 @@ public class TrafficSimulator {
                                 newCar = new BasicDriver();
                             }
                             addCar(newCar);
+                            System.out.println("Added " + newCar);
                         }
                     } else {
                         System.out.println("Car has not escaped");
@@ -128,11 +133,18 @@ public class TrafficSimulator {
                         if (((Road) grid[y][x]).isOccupied()) { // if the car has moved into an occupied space, i.e. crashed into another car
                             System.out.println("Car has crashed");
                             cars.remove(car);
-                            cars.remove(((Road) grid[y][x]).getOccupant());
+                            System.out.println("Removed " + car);
+                            Car otherCar = ((Road) grid[y][x]).getOccupant();
+                            cars.remove(otherCar);
+                            System.out.println("Removed " + otherCar + " from " + (Road) grid[y][x]);
                             ((Road) grid[y][x]).removeOccupant();
-                            Collision c = new Collision(x, y);
-                            ((Road) grid[y][x]).setOccupant(c);
-                            cars.add(c);
+                            System.out.println("Removed occupant from " + ((Road) grid[y][x]));
+//                            Collision c = new Collision(x, y);
+//                            System.out.println("Created " + c);
+//                            ((Road) grid[y][x]).setOccupant(c);
+//                            System.out.println("Made " + c + " occupant of " + ((Road) grid[y][x]));
+//                            cars.add(c);
+//                            System.out.println("Added " + c + " to cars list");
                         } else {
                             System.out.println("Setting new occupant");
                             ((Road) grid[y][x]).setOccupant(car);
@@ -144,7 +156,7 @@ public class TrafficSimulator {
             }
         }
         System.out.println(!targetReached);
-        if (targetReached) { // max cars not reached; add more cars based on user pref.
+        if (!targetReached) { // max cars not reached; add more cars based on user pref.
             System.out.println("adding cars");
             int randType = (int) (Math.random() * 100) + 1;
             int total = 0;

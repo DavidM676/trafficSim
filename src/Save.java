@@ -40,7 +40,7 @@ public class Save {
         this.width = width;
         this.height = height;
         grid = new Cell[width][height];
-        trafficVolume = 0;
+        trafficVolume = 50;
         cars = new ArrayList<>();
         settings = new int[DriverType.values().length + 1];
         ID++;
@@ -51,7 +51,7 @@ public class Save {
         this.width = width;
         this.height = height;
         grid = new Cell[width][height];
-        trafficVolume = 0;
+        trafficVolume = 50;
         cars = new ArrayList<>();
         settings = new int[DriverType.values().length + 1];
         ID++;
@@ -101,7 +101,7 @@ public class Save {
         Cell[][] newGrid = new Cell[width][height];
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                grid[i][j] = grid[i][j].clone();
+                newGrid[i][j] = grid[i][j].clone();
             }
         }
         return newGrid;

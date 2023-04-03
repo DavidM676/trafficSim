@@ -44,16 +44,37 @@ public class Road extends Cell {
         return direction;
     }
 
-    public boolean canMoveForward() {
-        return canMoveForward;
+    public boolean canMoveForward(Orientation startingDirection) {
+        if (startingDirection == direction) {
+            return canMoveForward;
+        } else if (startingDirection == Orientation.rotateLeft(direction)) {
+            return canTurnLeft;
+        } else if (startingDirection == Orientation.rotateRight(direction)) {
+            return canTurnRight;
+        }
+        return false;
     }
 
-    public boolean canTurnLeft() {
-        return canTurnLeft;
-    }
-
-    public boolean canTurnRight() {
+    public boolean canTurnLeft(Orientation startingDirection) {
+        if (startingDirection == direction) {
+            return canTurnLeft;
+        } else if (startingDirection == Orientation.rotateLeft(direction)) {
+            return false;
+        } else if (startingDirection == Orientation.rotateRight(direction)) {
+            return canMoveForward;
+        }
         return canTurnRight;
+    }
+
+    public boolean canTurnRight(Orientation startingDirection) {
+        if (startingDirection == direction) {
+            return canTurnRight;
+        } else if (startingDirection == Orientation.rotateLeft(direction)) {
+            return canMoveForward;
+        } else if (startingDirection == Orientation.rotateRight(direction)) {
+            return false;
+        }
+        return canTurnLeft;
     }
 
     public boolean isOccupied() {

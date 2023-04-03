@@ -94,9 +94,10 @@ public class MultiRectangleDrawer extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 if (settings.getText().equals("settings")) {//you can also use run and !run boolean
                     map.setSettings(settingsWindow());
-                } else if (settings.getText().equals("stats")) {
-                    statsWindow();
                 }
+//                } else if (settings.getText().equals("stats")) {
+//                    statsWindow();
+//                }
             }
         });
 
