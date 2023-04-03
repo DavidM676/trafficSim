@@ -116,11 +116,11 @@ public class MultiRectangleDrawer extends JPanel {
                     repaint();
                     sim.simulate(); // start sim
                 } else {
-                    sim.stopSimulation(); // stop sim
                     start.setText("Start");
                     settings.setText("settings");
                     changed=null;
                     repaint();
+                    sim.stopSimulation(); // stop sim
                 }
             }
         });

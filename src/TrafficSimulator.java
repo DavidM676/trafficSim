@@ -169,7 +169,10 @@ public class TrafficSimulator {
                 }
             } else {
                 System.out.println("Car has not escaped");
-                System.out.println(((Road) grid[y][x]));
+                System.out.println("x = " + x);
+                System.out.println("y = " + y);
+                System.out.println("grid is null: " + ((grid[y][x]) == null));
+                System.out.println((grid[y][x]));
                 int otherIndex = otherIndexOf(coords);
                 if (otherIndex != -1) { // if the car has moved into an occupied space, i.e. crashed into another car
                     Car otherCar = cars.get(otherIndex);
