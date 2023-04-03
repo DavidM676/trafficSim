@@ -348,11 +348,11 @@ public class MultiRectangleDrawer extends JPanel {
 
         String[] columnNames = {"Driver", "#", "Collisions", "Trips without accident"};
         Object[][] data = {
-                {"jojodoss", "1", 2345, 123},
-                {"hansy_boi", "2", 2345, 5432},
+                {"driver1", "1", 2345, 123},
+                {"driver2", "2", 2345, 5432},
                 {"java joe", "3", 6354, 897},
-                {"mr miller", "4", 7152435, 78},
-                {"sichang", "5", 123412, 49785}
+                {"driver3", "4", 7152435, 78},
+                {"driver4", "5", 123412, 49785}
         };
 
         JTable table = new JTable(data, columnNames);
