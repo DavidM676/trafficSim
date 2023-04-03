@@ -111,7 +111,7 @@ public class MultiRectangleDrawer extends JPanel {
                 startButtonPressed = !startButtonPressed;
                 if (start.getText().equals("Start")) {
                     start.setText("Stop");
-                    settings.setText("stats");
+//                    settings.setText("stats");
                     changed=null;
                     repaint();
                     sim.simulate(); // start sim
