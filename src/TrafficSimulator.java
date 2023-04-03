@@ -142,45 +142,35 @@ public class TrafficSimulator {
                 Car slowest = slowestCar();
                 if (slowest.equals(car)) {
                     cars.set(k, null); // TODO: WHERE ALL CARS ARE REMOVED, MAKE THEM NULL
-                }
-                int slowestIndex = cars.indexOf(slowest);
-                System.out.println("Slowest car is: " + slowest + " at index " + slowestIndex);
-                cars.remove(slowest);
-                ((Road) grid[slowest.getY()][slowest.getX()]).removeOccupant();
-                System.out.println("Removed " + slowest + " from Road " + ((Road) grid[slowest.getY()][slowest.getX()]));
-                if (slowestIndex <= k) {
-                    k--;
-                    System.out.println("Decremeted k to index " + k);
-                }
-                if (!slowest.equals(car)) {
-                    cars.remove(car);
-                    k--;
+                } else {
+                    int slowestIndex = cars.indexOf(slowest);
+                    System.out.println("Slowest car is: " + slowest + " at index " + slowestIndex);
+                    cars.set(slowestIndex, null);
+                    ((Road) grid[slowest.getY()][slowest.getX()]).removeOccupant();
+                    System.out.println("Removed " + slowest + " from Road " + ((Road) grid[slowest.getY()][slowest.getX()]));
+                    cars.set(k, null);
                     ((Road) grid[car.getY()][car.getX()]).removeOccupant();
                     System.out.println("Removed " + car + " from Road " + ((Road) grid[car.getY()][car.getX()]));
-                }
-                for (int i = 0; i < 2; i++) { // add two cars of successful type (or attempt to)
-                    // ADD MORE TYPES AS TYPES ARE ADDED
-                    Car newCar = null;
-                    if (car instanceof BasicDriver) {
-                        newCar = new BasicDriver();
+                    for (int i = 0; i < 2; i++) { // add two cars of successful type (or attempt to)
+                        // ADD MORE TYPES AS TYPES ARE ADDED
+                        Car newCar = null;
+                        if (car instanceof BasicDriver) {
+                            newCar = new BasicDriver();
+                        }
+                        addCar(newCar);
+                        System.out.println("Added " + newCar);
                     }
-                    addCar(newCar);
-                    System.out.println("Added " + newCar);
                 }
             } else {
                 System.out.println("Car has not escaped");
                 System.out.println(((Road) grid[y][x]));
-                if (((Road) grid[y][x]).isOccupied()) { // if the car has moved into an occupied space, i.e. crashed into another car
-                    Car otherCar = ((Road) grid[y][x]).getOccupant();
+                int otherIndex = otherIndexOf(coords);
+                if (otherIndex != -1) { // if the car has moved into an occupied space, i.e. crashed into another car
+                    Car otherCar = cars.get(otherIndex);
                     System.out.println("Car has crashed");
-                    cars.remove(car);
-                    k--;
+                    cars.set(k, null);
                     System.out.println("Removed " + car);
-                    int otherIndex = cars.indexOf(otherCar);
-                    cars.remove(otherIndex);
-                    if (otherIndex <= k) {
-                        k--;
-                    }
+                    cars.set(otherIndex, null);
                     System.out.println("Removed " + otherCar + " from " + (Road) grid[y][x]);
                     ((Road) grid[y][x]).removeOccupant();
                     System.out.println("Removed occupant from " + ((Road) grid[y][x]));
@@ -261,6 +251,15 @@ public class TrafficSimulator {
             c.setY(coords[1]);
             c.setDirection(startingPositionToDirection(coords));
         }
+    }
+
+    private int otherIndexOf(Integer[] coords) {
+        for (Integer[] otherCoords : finalCoordinates) {
+            if (coords[1] == otherCoords[1] && coords[2] == otherCoords[2] && coords[0] != otherCoords[0]) {
+                return otherCoords[0];
+            }
+        }
+        return -1;
     }
 
     private Orientation startingPositionToDirection(Integer[] coords) {
