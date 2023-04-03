@@ -3,15 +3,15 @@ public class Intersection extends Road {
             "src/intersectionPrimaryTurn.png",
             "src/intersectionSecondaryTurn.png",
             "src/intersectionBothTurns.png",
-            "src/intersectionRightTurnOnly",
-            "src/intersectionLeftTurnOnly"};
+            "src/intersectionRightTurnOnly.png",
+            "src/intersectionLeftTurnOnly.png"};
     private Orientation direction;
     private boolean canMoveForward;
     private boolean canTurnLeft;
     private boolean canTurnRight;
 
     public Intersection(Orientation direction1) {
-        super(direction1);
+        super(direction1, IMAGES[0]);
         direction = Orientation.rotateLeft(direction1);
         canMoveForward = true;
         canTurnLeft = false;
@@ -49,7 +49,7 @@ public class Intersection extends Road {
         if (type >= IMAGES.length) {
             type = 0;
         }
-        setImage(IMAGES[type]);
+        setArrowImage(IMAGES[type]);
 
         setCanMoveForward(type < 5);
         canMoveForward = type != 4;
@@ -62,7 +62,6 @@ public class Intersection extends Road {
     @Override
     public Intersection clone() {
         Intersection clone = (Intersection) super.clone();
-        // TODO: copy mutable state here, so the clone can't change the internals of the original
         clone.direction = direction;
         clone.canMoveForward = canMoveForward;
         clone.canTurnLeft = canTurnLeft;

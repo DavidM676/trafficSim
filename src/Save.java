@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Save {
@@ -8,19 +9,14 @@ public class Save {
     private Cell[][] grid;
     private int trafficVolume;
     private ArrayList<Car> cars;
+    private int[] settings;
 
     // clone old save, but rename it. used for "Save" menu button
     public Save(Save oldSave, String newName) {
         name = newName;
         width = oldSave.width;
         height = oldSave.height;
-        grid = new Cell[width][height];
-        for (int i = 0; i < oldSave.getHeight(); i++) {
-            for (int j = 0; j < oldSave.getWidth(); j++) {
-                grid[i][j] = oldSave.getGrid()[i][j].clone();
-                System.out.println(grid[i][j].getClass() + " at x = " + j + ", y = " + i);
-            }
-        }
+        grid = oldSave.cloneGrid();
         trafficVolume = oldSave.trafficVolume;
         for (Cell[] row : grid) {
             for (Cell c : row) {
@@ -32,6 +28,10 @@ public class Save {
                 }
             }
         }
+        settings = new int[oldSave.settings.length];
+        for (int i = 0; i < oldSave.settings.length; i++) {
+            settings[i] = oldSave.settings[i];
+        }
         ID++;
     }
 
@@ -42,6 +42,7 @@ public class Save {
         grid = new Cell[width][height];
         trafficVolume = 0;
         cars = new ArrayList<>();
+        settings = new int[DriverType.values().length + 1];
         ID++;
     }
 
@@ -52,6 +53,7 @@ public class Save {
         grid = new Cell[width][height];
         trafficVolume = 0;
         cars = new ArrayList<>();
+        settings = new int[DriverType.values().length + 1];
         ID++;
     }
 
@@ -71,7 +73,74 @@ public class Save {
         return grid;
     }
 
+    public int getTrafficVolume() {
+        return trafficVolume;
+    }
+
+    public ArrayList<Car> getCars() {
+        return cars;
+    }
+
+    public int[] getSettings() {
+        return settings;
+    }
+
     public void setName(String newName) {
         name = newName;
+    }
+
+    public void setSettings(int[] newSettings) {
+        settings = newSettings;
+    }
+
+    public void setTrafficVolume(int newTrafficVolume) {
+        trafficVolume = newTrafficVolume;
+    }
+
+    public Cell[][] cloneGrid() {
+        Cell[][] newGrid = new Cell[width][height];
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                grid[i][j] = grid[i][j].clone();
+            }
+        }
+        return newGrid;
+    }
+
+    public ArrayList<Integer[]> getEntryPoints() { // returns coordinates of points of entry from outside the map in x y order (column-row)
+        ArrayList<Integer[]> result = new ArrayList<>();
+        for (int i = 0; i < width; i++) { // traverse top row
+            if (grid[0][i] instanceof Road) {
+                Road r = (Road) grid[0][i];
+                if (r.getType() == 0 && r.getDirection().equals(Orientation.EAST)) {
+                    result.add(new Integer[] {i, 0});
+                }
+            }
+        }
+        for (int i = 0; i < width; i++) { // traverse bottom row
+            if (grid[height - 1][i] instanceof Road) {
+                Road r = (Road) grid[height - 1][i];
+                if (r.getType() == 0 && r.getDirection().equals(Orientation.WEST)) {
+                    result.add(new Integer[] {i, height - 1});
+                }
+            }
+        }
+        for (int i = 1; i < height - 1; i++) { // traverse first column
+            if (grid[i][0] instanceof Road) {
+                Road r = (Road) grid[i][0];
+                if (r.getType() == 0 && r.getDirection().equals(Orientation.SOUTH)) {
+                    result.add(new Integer[] {0, i});
+                }
+            }
+        }
+        for (int i = 1; i < height - 1; i++) { // traverse last column
+            if (grid[i][width - 1] instanceof Road) {
+                Road r = (Road) grid[i][width - 1];
+                if (r.getType() == 0 && r.getDirection().equals(Orientation.NORTH)) {
+                    result.add(new Integer[] {0, width - 1});
+                }
+            }
+        }
+        return result;
     }
 }

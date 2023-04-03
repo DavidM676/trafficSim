@@ -2,8 +2,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Road extends Cell {
-    private final static String[] IMAGES = {"src/road.png", "src/leftTurn.png", "src/rightTurn.png", "src/bothTurns.png", "src/leftTurnOnly.png", "src/rightTurnOnly.png", "src/bothTurnsOnly.png"};
+    private final static String[] IMAGES = {"src/arrow.png", "src/leftTurn.png", "src/rightTurn.png", "src/bothTurns.png", "src/leftTurnOnly.png", "src/rightTurnOnly.png", "src/bothTurnsOnly.png"};
     private int type;
+    private String arrowImage;
     private Orientation direction;
     private boolean canMoveForward;
     private boolean canTurnLeft;
@@ -14,6 +15,17 @@ public class Road extends Cell {
     public Road(Orientation direction) {
         super("src/road.png");
         type = 0;
+        arrowImage = IMAGES[0];
+        this.direction = direction;
+        canMoveForward = true;
+        canTurnLeft = false;
+        canTurnRight = false;
+    }
+
+    public Road(Orientation direction, String arrowImage) {
+        super("src/road.png");
+        type = 0;
+        this.arrowImage = arrowImage;
         this.direction = direction;
         canMoveForward = true;
         canTurnLeft = false;
@@ -22,6 +34,10 @@ public class Road extends Cell {
 
     public int getType() {
         return type;
+    }
+
+    public String getArrowImage() {
+        return arrowImage;
     }
 
     public Orientation getDirection() {
@@ -50,6 +66,10 @@ public class Road extends Cell {
 
     public void setType(int newType) {
         type = newType;
+    }
+
+    public void setArrowImage(String newArrowImage) {
+        arrowImage = newArrowImage;
     }
 
     public void setDirection(Orientation newDirection) {
@@ -83,7 +103,7 @@ public class Road extends Cell {
         if (type >= IMAGES.length) {
             type = 0;
         }
-        setImage(IMAGES[type]);
+        arrowImage = IMAGES[type];
 
         if (type < 4) { // first 4 types, moveForward is always true
             canMoveForward = true;
@@ -99,8 +119,8 @@ public class Road extends Cell {
     @Override
     public Road clone() {
         Road clone = (Road) super.clone();
-        // TODO: copy mutable state here, so the clone can't change the internals of the original
         clone.type = type;
+        clone.arrowImage = arrowImage;
         clone.direction = direction;
         clone.canMoveForward = canMoveForward;
         clone.canTurnLeft = canTurnLeft;
@@ -112,5 +132,10 @@ public class Road extends Cell {
             clone.occupant = null;
         }
         return clone;
+    }
+
+    @Override
+    public String toString() {
+        return getClass() + " with occupant " + occupant;
     }
 }

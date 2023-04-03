@@ -30,8 +30,6 @@ public class MultiRectangleDrawer extends JPanel {
 
     private Image backgroundImage;
 
-
-
     public MultiRectangleDrawer(TrafficSimulator sim, int screenWidth, int screenHeight, int cellSize) {
         this.sim = sim;
         startButtonPressed = false;
@@ -39,23 +37,13 @@ public class MultiRectangleDrawer extends JPanel {
         JMenu fileTab= new JMenu("File");
 
         // file menu--------------------------------------
-//        JMenuItem newSave = new JMenuItem("new");
-//        newSave.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                // make a new file; remove old one from display
-//                map = TrafficSimulator.createEmptySave();
-//                frame.setTitle(map.getName());
-//                sim.addSave(map);
-//                repaintAll();
-//            }
-//        });
-
         JMenuItem save = new JMenuItem("save");
         save.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String newName = nameWindow();
                 if (newName != null) {
                     map.setName(newName);
+                    frame.setTitle(map.getName());
                 }
             }
         });
@@ -93,7 +81,6 @@ public class MultiRectangleDrawer extends JPanel {
             }
         });
 
-//        fileTab.add(newSave);
         fileTab.add(save);
         fileTab.add(saveAs);
         fileTab.add(load);
@@ -106,7 +93,7 @@ public class MultiRectangleDrawer extends JPanel {
         settings.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (settings.getText().equals("settings")) {//you can also use run and !run boolean
-                    settingsWindow();
+                    map.setSettings(settingsWindow());
                 } else if (settings.getText().equals("stats")) {
                     statsWindow();
                 }
@@ -126,13 +113,13 @@ public class MultiRectangleDrawer extends JPanel {
                     settings.setText("stats");
                     changed=null;
                     repaint();
-                    // code to start the task
+                    sim.simulate(); // start sim
                 } else {
+                    sim.stopSimulation(); // stop sim
                     start.setText("Start");
                     settings.setText("settings");
                     changed=null;
                     repaint();
-                    // code to stop the task
                 }
             }
         });
@@ -140,7 +127,6 @@ public class MultiRectangleDrawer extends JPanel {
         mb.add(fileTab);
         mb.add(configTab);
         mb.add(start);
-
 
         //MOUSE EVENTS -------------------------------
         addMouseListener(new MouseAdapter() {
@@ -153,7 +139,7 @@ public class MultiRectangleDrawer extends JPanel {
                         changeCell(e.getX(), e.getY(), true);
                     } else if (e.getButton() == MouseEvent.BUTTON2) {
                         // Middle mouse button was clicked -> change turning abilities (swap between no turn, left turn, right turn, and both turns, or for an intersection, no turns, turn from path 1, turn from path 2, or turns from both)
-
+                        changeRules(e.getX(), e.getY());
                     } else if (e.getButton() == MouseEvent.BUTTON3) {
                         changeAngle(e.getX(), e.getY());
                         // Right mouse button was clicked
@@ -209,13 +195,17 @@ public class MultiRectangleDrawer extends JPanel {
         frame.setJMenuBar(mb);
     }
 
+    public Save getMap() {
+        return map;
+    }
 
-
-    private void repaintAll() {
+    public void repaintAll() {
         for (int i = 0; i<map.getHeight(); i++) {
             for (int j = 0; j<map.getWidth(); j++) {
-                changed = new Point(i, j);
-                paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
+                if (map.getGrid()[i][j] instanceof Road) {
+                    changed = new Point(i, j);
+                    paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
+                }
             }
         }
     }
@@ -229,7 +219,7 @@ public class MultiRectangleDrawer extends JPanel {
     private void changeCell(int x, int y, boolean clickAgain) {
         Point newPnt = getCell(x, y);
         if ((!(newPnt.equals(changed))) || clickAgain) {
-            if (map.getGrid()[newPnt.x][newPnt.y] instanceof Grass) {
+            if (map.getGrid()[newPnt.x][newPnt.y] instanceof Grass) { // grass -> road
                 Orientation angle = Orientation.NORTH;
                 if (changed!=null) {
                     if (newPnt.x < changed.x) {
@@ -242,11 +232,35 @@ public class MultiRectangleDrawer extends JPanel {
                 }
                 map.getGrid()[newPnt.x][newPnt.y] = new Road(angle);
             } else if (map.getGrid()[newPnt.x][newPnt.y] instanceof Road) {
-                map.getGrid()[newPnt.x][newPnt.y] = new Grass();
+                if (map.getGrid()[newPnt.x][newPnt.y] instanceof Intersection) { // intersection -> grass
+                    map.getGrid()[newPnt.x][newPnt.y] = new Grass();
+                } else { // road -> intersection
+                    Orientation angle = Orientation.NORTH;
+                    if (changed!=null) {
+                        if (newPnt.x < changed.x) {
+                            angle = Orientation.WEST;
+                        } else if (newPnt.x>changed.x) {
+                            angle = Orientation.EAST;
+                        } else if (newPnt.y>changed.y) {
+                            angle = Orientation.SOUTH;
+                        }
+                    }
+                    map.getGrid()[newPnt.x][newPnt.y] = new Intersection(angle);
+                }
             }
             changed = new Point(newPnt.x, newPnt.y);
             repaint(newPnt.x * cellSize, newPnt.y * cellSize, cellSize, cellSize);
         }
+    }
+
+    private void changeRules(int x, int y) {
+        Point changePnt = getCell(x, y);
+        if (map.getGrid()[changePnt.x][changePnt.y] instanceof Road) {
+            Road r = (Road) map.getGrid()[changePnt.x][changePnt.y];
+            r.changeType();
+        }
+        changed = new Point(changePnt.x, changePnt.y);
+        repaint(changePnt.x * cellSize, changePnt.y * cellSize, cellSize, cellSize);
     }
 
     private void changeAngle(int x, int y) {
@@ -290,31 +304,29 @@ public class MultiRectangleDrawer extends JPanel {
     }
 
     public int[] settingsWindow() {
-        JSlider slider1 = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
-        JSlider slider2 = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
-        JSlider slider3 = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
-
-        JPanel panel = new JPanel(new GridLayout(3,2));
-        panel.add(new JLabel("Slider 1:"));
-        panel.add(slider1);
-        panel.add(new JLabel("Slider 2:"));
-        panel.add(slider2);
-        panel.add(new JLabel("Slider 3:"));
-        panel.add(slider3);
-
-        int result = JOptionPane.showConfirmDialog(null, panel, "Sliders", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            int value1 = slider1.getValue();
-            int value2 = slider2.getValue();
-            int value3 = slider3.getValue();
-            System.out.println("Slider 1 value: " + value1);
-            System.out.println("Slider 2 value: " + value2);
-            System.out.println("Slider 3 value: " + value3);
-            int[] vals = {value1, value2, value3};
-            return vals;
+        JSlider[] sliders = new JSlider[DriverType.values().length + 1];
+        JPanel panel = new JPanel(new GridLayout(sliders.length, 2));
+        int count = 0;
+        for (DriverType type : DriverType.values()) {
+            sliders[count] = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
+            panel.add(new JLabel(type.toString()));
+            panel.add(sliders[count]);
+            count++;
         }
-        int[] def = new int[3];
-        return def;
+
+        sliders[sliders.length - 1] = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        panel.add(new JLabel("Traffic Concentration"));
+        panel.add(sliders[sliders.length - 1]);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, "Configure", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            int[] values = new int[DriverType.values().length + 1];
+            for (int i = 0; i < sliders.length; i++) {
+                values[i] = sliders[i].getValue();
+            }
+            return values;
+        }
+        return new int[3];
     }
 
     public void statsWindow() {
@@ -349,14 +361,15 @@ public class MultiRectangleDrawer extends JPanel {
 
     public void drawImage(Graphics g, int i, int j) {
         if (map.getGrid()[i][j] instanceof Road) { //only draw Roads
+            Road r = (Road) map.getGrid()[i][j];
             try {
-                g.drawImage(ImageIO.read(new File(map.getGrid()[i][j].getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
+                g.drawImage(ImageIO.read(new File(r.getImage())), i * cellSize, j * cellSize, cellSize, cellSize, null);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             if (!startButtonPressed) {
                 try {
-                    BufferedImage image = ImageIO.read(new File("src/arrow.png"));
+                    BufferedImage image = ImageIO.read(new File(r.getArrowImage()));
                     BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
                     Graphics2D g2d = rotatedImage.createGraphics();
                     g2d.rotate(Math.toRadians(Orientation.toDegrees(((Road) map.getGrid()[i][j]).getDirection())), cellSize / 2, cellSize / 2);
@@ -365,6 +378,20 @@ public class MultiRectangleDrawer extends JPanel {
                     g.drawImage(rotatedImage, i * cellSize, j * cellSize, null);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
+                }
+            } else { // draw cars/collisions
+                if (r.isOccupied()) { // if road has occupant
+                    try {
+                        BufferedImage image = ImageIO.read(new File(r.getOccupant().getImage()));
+                        BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
+                        Graphics2D g2d = rotatedImage.createGraphics();
+                        g2d.rotate(Math.toRadians(Orientation.toDegrees(r.getOccupant().getDirection())), cellSize / 2, cellSize / 2);
+                        g2d.drawImage(image, 0, 0, cellSize, cellSize, null);
+                        g2d.dispose();
+                        g.drawImage(rotatedImage, i * cellSize, j * cellSize, null);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         }
