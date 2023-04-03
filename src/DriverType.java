@@ -1,3 +1,4 @@
 public enum DriverType {
-    BasicDriver
+    BasicDriver,
+    AdvancedDriver
 }
