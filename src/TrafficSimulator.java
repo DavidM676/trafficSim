@@ -153,7 +153,6 @@ public class TrafficSimulator {
                     int slowestIndex = cars.indexOf(slowest);
                     System.out.println("Slowest car is: " + slowest + " at index " + slowestIndex);
                     cars.set(slowestIndex, null);
-                    ((Road) grid[slowest.getY()][slowest.getX()]).removeOccupant();
                     System.out.println("Removed " + slowest + " from Road " + ((Road) grid[slowest.getY()][slowest.getX()]));
                     cars.set(k, null);
                     ((Road) grid[car.getY()][car.getX()]).removeOccupant();
