@@ -261,15 +261,23 @@ public class TrafficSimulator {
     }
 
     private void addCar(Car c) {
-        if (entryPoints.size() > 0) {
+        System.out.println("addCar method called");
+        if (pointAvailable()) {
             cars.add(c);
-            int randIndex = (int) (Math.random() * entryPoints.size());
-            Integer[] coords = entryPoints.get(randIndex);
-            entryPoints.remove(randIndex);
-            ((Road) grid[coords[1]][coords[0]]).setOccupant(c);
-            c.setX(coords[0]);
-            c.setY(coords[1]);
-            c.setDirection(startingPositionToDirection(coords));
+            System.out.println("Added car " + c + " to cars list");
+            Integer[] coords = randomPointNotNull();
+            if (coords != null) {
+                System.out.println("Coords selected: " + Arrays.deepToString(coords));
+                // entryPoints.remove(randIndex);
+                entryPoints.set(randIndex, null);
+                System.out.println("Removed " + randIndex + " from entryPoints");
+                System.out.println(grid[coords[1]][coords[0]]);
+                System.out.println("Cell instanceof Road? " + (grid[coords[1]][coords[0]] instanceof Road));
+                ((Road) grid[coords[1]][coords[0]]).setOccupant(c);
+                c.setX(coords[0]);
+                c.setY(coords[1]);
+                c.setDirection(startingPositionToDirection(coords));
+            }
         }
     }
 
@@ -310,5 +318,24 @@ public class TrafficSimulator {
             System.out.println("Next result in config: " + result[j]);
         }
         return result;
+    }
+
+    private boolean pointAvailable() {
+        for (Integer[] coord : entryPoints) {
+            if (coord != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Integer[] randomPointNotNull() {
+        ArrayList<Integer[]> pointsNotNull = new ArrayList<>();
+        for (Integer[] coord : entryPoints) {
+            if (coord != null) {
+                pointsNotNull.add(coord);
+            }
+        }
+        return pointsNotNull.get((int) (Math.random() * pointsNotNull.size()));
     }
 }
