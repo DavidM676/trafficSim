@@ -241,14 +241,22 @@ public class TrafficSimulator {
     }
 
     private Car slowestCar() { // returns the car that has been on the map the longest, i.e. the slowest one (to be purged)
-        Car slowest = cars.get(0);
+        System.out.println("Slowest car method running");
+        Car slowest = null;
         int mostMoves = Integer.MIN_VALUE;
+        System.out.println("Looking through cars list for slowest car.");
         for (Car car : cars) {
-            if (car.getMoveNum() > mostMoves) {
-                slowest = car;
-                mostMoves = car.getMoveNum();
+            if (car != null) {
+                System.out.println("Checking car " + car);
+                if (car.getMoveNum() > mostMoves) {
+                    System.out.println("Car" + car + " is slower than previous slowest " + slowest);
+                    slowest = car;
+                    mostMoves = car.getMoveNum();
+                    System.out.println("Slowest car: " + slowest + "");
+                }
             }
         }
+        System.out.println("Returning car " + slowest);
         return slowest;
     }
 
