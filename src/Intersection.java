@@ -72,6 +72,7 @@ public class Intersection extends Road {
         setType(type);
         if (type >= IMAGES.length) {
             type = 0;
+            setType(0);
         }
         setArrowImage(IMAGES[type]);
 

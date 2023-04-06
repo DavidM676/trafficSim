@@ -200,15 +200,16 @@ public class MultiRectangleDrawer extends JPanel {
         return map;
     }
 
-    public void repaintRoad() {
-        for (int i = 0; i<map.getHeight(); i++) {
-            for (int j = 0; j<map.getWidth(); j++) {
-                if (map.getGrid()[i][j] instanceof Road) {
-                    changed = new Point(i, j);
-                    paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
-                }
-            }
-        }
+    public void repaintRoad(ArrayList<Road> roads) {
+        repaint();
+//        for (Road r : roads) {
+//            int i = r.getOccupant().getY();
+//            int j = r.getOccupant().getX();
+//            changed = new Point(i, j);
+//            paintImmediately(i * cellSize, j * cellSize, cellSize, cellSize);
+//            System.out.println("Repainted " + r + " successfully.");
+//        }
+//        System.out.println("Done repainting roads.");
     }
 
     private void repaintAll() {
@@ -394,8 +395,10 @@ public class MultiRectangleDrawer extends JPanel {
                 }
             } else { // draw cars/collisions
                 if (r.isOccupied()) { // if road has occupant
+                    System.out.println("Road is occupied.");
                     try {
                         BufferedImage image = ImageIO.read(new File(r.getOccupant().getImage()));
+                        System.out.println("Reading road occupant image.");
                         BufferedImage rotatedImage = new BufferedImage(cellSize, cellSize, image.getType());
                         Graphics2D g2d = rotatedImage.createGraphics();
                         g2d.rotate(Math.toRadians(Orientation.toDegrees(r.getOccupant().getDirection())), cellSize / 2, cellSize / 2);

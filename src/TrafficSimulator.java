@@ -21,6 +21,7 @@ public class TrafficSimulator {
     private int currentVolume;
     private int[] settings;
     private int[] config;
+    private ArrayList<Road> modified;
 
     public TrafficSimulator() {
         saves = new ArrayList<>();
@@ -49,7 +50,7 @@ public class TrafficSimulator {
     public void simulate() {
         SwingWorker<Void, String> Worker = new SwingWorker<Void, String>() {
             @Override
-            protected Void doInBackground() {
+            protected Void doInBackground() throws InterruptedException {
                 simulationRunning = true;
                 while (simulationRunning) {
                     System.out.println("Simulation running");
@@ -63,6 +64,7 @@ public class TrafficSimulator {
                     currentVolume = cars.size();
                     settings = currentSave.getSettings();
                     config = settingsToConfig();
+                    modified = new ArrayList<>();
                     System.out.println("Road count: " + roadCount());
                     System.out.println("Traffic volume: " + currentSave.getTrafficVolume());
                     System.out.println("Target volume: " + targetVolume);
@@ -93,12 +95,14 @@ public class TrafficSimulator {
         Cell[][] gridBefore = currentSave.cloneGrid();
         moveQueue.clear();
         finalCoordinates.clear();
+        modified.clear();
         System.out.println(cars.size());
         for (int m = 0; m < cars.size(); m++) { // new step; none have moved in it yet
             Car car = cars.get(m);
             if (car instanceof Collision) { // remove all collisions before simulation start
                 cars.remove(m);
                 ((Road) grid[car.getY()][car.getX()]).removeOccupant();
+                modified.add((Road) grid[car.getY()][car.getX()]);
                 m--;
             } else if (car == null) {
                 cars.remove(m);
@@ -115,8 +119,9 @@ public class TrafficSimulator {
                 System.out.println("Car's next move is: " + nextMove);
                 if (nextMove == Move.FORWARD) {
                     moveQueue.add(j);
-                } else {
-                    finalCoordinates.add(new Integer[] {j, car.getX(), car.getY()});
+                } else if (nextMove != Move.NONE) {
+                    finalCoordinates.add(new Integer[]{j, car.getX(), car.getY()});
+                    modified.add((Road) grid[car.getY()][car.getX()]);
                 }
             }
         }
@@ -126,6 +131,7 @@ public class TrafficSimulator {
             int x = car.getX();
             int y = car.getY();
             ((Road) grid[y][x]).removeOccupant();
+            modified.add((Road) grid[y][x]);
             System.out.println("Occupant successfully removed");
             switch (car.getDirection()) {
                 case NORTH -> x--;
@@ -135,7 +141,7 @@ public class TrafficSimulator {
             }
             System.out.println("Car coords updated");
             System.out.println("New coordinates: x = " + x + ", y = " + y);
-            finalCoordinates.add(new Integer[] {k, x, y});
+            finalCoordinates.add(new Integer[]{k, x, y});
         }
         for (Integer[] coords : finalCoordinates) {
             int k = coords[0];
@@ -148,11 +154,14 @@ public class TrafficSimulator {
                 Car slowest = slowestCar();
                 if (slowest.equals(car)) {
                     ((Road) grid[car.getY()][car.getX()]).removeOccupant();
+                    modified.add((Road) grid[car.getY()][car.getX()]);
                     cars.set(k, null);
                 } else {
                     int slowestIndex = cars.indexOf(slowest);
                     System.out.println("Slowest car is: " + slowest + " at index " + slowestIndex);
                     cars.set(slowestIndex, null);
+                    ((Road) grid[slowest.getY()][slowest.getX()]).removeOccupant();
+                    modified.add((Road) grid[slowest.getY()][slowest.getX()]);
                     System.out.println("Removed " + slowest + " from Road " + ((Road) grid[slowest.getY()][slowest.getX()]));
                     cars.set(k, null);
                     ((Road) grid[car.getY()][car.getX()]).removeOccupant();
@@ -184,6 +193,7 @@ public class TrafficSimulator {
                     cars.set(otherIndex, null);
                     System.out.println("Removed " + otherCar + " from " + (Road) grid[y][x]);
                     ((Road) grid[y][x]).removeOccupant();
+                    modified.add((Road) grid[y][x]);
                     System.out.println("Removed occupant from " + ((Road) grid[y][x]));
                     Collision c = new Collision(x, y);
                     System.out.println("Created " + c);
@@ -195,6 +205,7 @@ public class TrafficSimulator {
                     System.out.println("This code does not run when a collision occurs");
                     System.out.println("Setting new occupant");
                     ((Road) grid[y][x]).setOccupant(car);
+                    modified.add((Road) grid[y][x]);
                     car.setX(x);
                     car.setY(y);
                 }
@@ -202,7 +213,7 @@ public class TrafficSimulator {
         }
         System.out.println(!targetReached);
         if (!targetReached) { // max cars not reached; add more cars based on user pref.
-            while (entryPoints.size() > 0) {
+            while (pointAvailable()) {
                 System.out.println("Entry points: " + entryPoints);
                 System.out.println("adding cars");
                 int randType = (int) (Math.random() * 100) + 1;
@@ -225,7 +236,8 @@ public class TrafficSimulator {
                 System.out.println("Added " + newCar);
             }
         }
-        drawer.repaintRoad();
+        System.out.println("Repainting " + modified);
+        drawer.repaintRoad(modified);
     }
 
     private int roadCount() {
@@ -262,22 +274,22 @@ public class TrafficSimulator {
 
     private void addCar(Car c) {
         System.out.println("addCar method called");
-        if (pointAvailable()) {
-            cars.add(c);
-            System.out.println("Added car " + c + " to cars list");
-            Integer[] coords = randomPointNotNull();
-            if (coords != null) {
-                System.out.println("Coords selected: " + Arrays.deepToString(coords));
-                // entryPoints.remove(randIndex);
-                entryPoints.set(randIndex, null);
-                System.out.println("Removed " + randIndex + " from entryPoints");
-                System.out.println(grid[coords[1]][coords[0]]);
-                System.out.println("Cell instanceof Road? " + (grid[coords[1]][coords[0]] instanceof Road));
-                ((Road) grid[coords[1]][coords[0]]).setOccupant(c);
-                c.setX(coords[0]);
-                c.setY(coords[1]);
-                c.setDirection(startingPositionToDirection(coords));
-            }
+        cars.add(c);
+        System.out.println("Added car " + c + " to cars list");
+        int randIndex = randomPointNotNull();
+        Integer[] coords = entryPoints.get(randIndex);
+        if (coords != null) {
+            System.out.println("Coords selected: " + Arrays.deepToString(coords));
+            // entryPoints.remove(randIndex);
+            entryPoints.set(randIndex, null);
+            System.out.println("Removed " + randIndex + " from entryPoints");
+            System.out.println(grid[coords[1]][coords[0]]);
+            System.out.println("Cell instanceof Road? " + (grid[coords[1]][coords[0]] instanceof Road));
+            ((Road) grid[coords[1]][coords[0]]).setOccupant(c);
+            modified.add((Road) grid[coords[1]][coords[0]]);
+            c.setX(coords[0]);
+            c.setY(coords[1]);
+            c.setDirection(startingPositionToDirection(coords));
         }
     }
 
@@ -329,13 +341,13 @@ public class TrafficSimulator {
         return false;
     }
 
-    private Integer[] randomPointNotNull() {
+    private int randomPointNotNull() {
         ArrayList<Integer[]> pointsNotNull = new ArrayList<>();
         for (Integer[] coord : entryPoints) {
             if (coord != null) {
                 pointsNotNull.add(coord);
             }
         }
-        return pointsNotNull.get((int) (Math.random() * pointsNotNull.size()));
+        return entryPoints.indexOf(pointsNotNull.get((int) (Math.random() * pointsNotNull.size())));
     }
 }

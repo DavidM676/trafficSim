@@ -11,6 +11,7 @@ public class Road extends Cell {
     private boolean canTurnRight;
     private boolean occupied;
     private Car occupant;
+    private boolean modified;
 
     public Road(Orientation direction) {
         super("src/road.png");
@@ -78,10 +79,12 @@ public class Road extends Cell {
     }
 
     public boolean isOccupied() {
+        System.out.println("Returning that I am occupied? " + occupied);
         return occupied;
     }
 
     public Car getOccupant() {
+        System.out.println("Returning car " + occupant);
         return occupant;
     }
 
